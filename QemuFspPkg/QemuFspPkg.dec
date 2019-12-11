@@ -1,0 +1,51 @@
+## @file
+# FSP package PCD definitions for QEMU platform
+#
+# Copyright (c) 2017 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#    This program and the accompanying materials
+#    are licensed and made available under the terms and conditions of the BSD License
+#    which accompanies this distribution. The full text of the license may be found at
+#    http://opensource.org/licenses/bsd-license.php
+#
+#    THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  DEC_SPECIFICATION              = 0x00010005
+  PACKAGE_NAME                   = QemuFspPkg
+  PACKAGE_GUID                   = F4D5D60C-8052-444a-9078-6B863EF5B540
+  PACKAGE_VERSION                = 1.02
+
+[Includes]
+  Include
+
+[Guids]
+  #
+  # GUID defined in package
+  #
+  gQemuFspPkgTokenSpaceGuid  = { 0x2aef6cb8, 0x2fc4, 0x47ef, { 0x85, 0xc7, 0x16, 0xfb, 0xe2, 0xae, 0xe3, 0xbd }}
+  gFspSiliconFvGuid          = { 0x1b5c27fe, 0xf01c, 0x4fbc, { 0xae, 0xae, 0x34, 0x1b, 0x2e, 0x99, 0x2a, 0x17 }}
+  gFspReservedMemoryResourceHobTsegGuid  =  { 0xd038747c, 0xd00c, 0x4980, { 0xb3, 0x19, 0x49, 0x01, 0x99, 0xa4, 0x7d, 0x55}}
+
+[PcdsFixedAtBuild]
+  gQemuFspPkgTokenSpaceGuid.PcdFspStackTopReservedSize    | 0x00000000           | UINT32  | 0x00000002
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase            | 0x00000000           | UINT32  | 0x00000003
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize            | 0x00000000           | UINT32  | 0x00000005
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase            | 0x00000000           | UINT32  | 0x00000006
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize            | 0x00000000           | UINT32  | 0x00000008
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase            | 0x00000000           | UINT32  | 0x00000009
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize            | 0x00000000           | UINT32  | 0x0000000A
+  gQemuFspPkgTokenSpaceGuid.PcdFspHeaderRevision          | 0x02                 | UINT8   | 0x00000011
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageRevision           | 0x00000000           | UINT32  | 0x00000012
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageIdString           | 0x245053464D455124   | UINT64  | 0x00000013 #$QEMFSP$
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageAttributes         | 0x0000               | UINT16  | 0x00000015 #BIT0 Graphics supported
+  gQemuFspPkgTokenSpaceGuid.PcdFspComponentAttributes     | 0x0000               | UINT16  | 0x00000016 #Bits[15:12] - 0001b: FSP-T, 0010b: FSP-M, 0011b: FSP-S
+
+[PcdsFeatureFlag]
+  gQemuFspPkgTokenSpaceGuid.PcdStatusCodeUseIsaSerial     | TRUE                 | BOOLEAN | 0x00000017
+
+
+

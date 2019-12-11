@@ -1,0 +1,56 @@
+## @file
+#  This driver is a sample implementation of the Graphics Output Protocol for
+#  the QEMU (Cirrus Logic 5446) video controller.
+#
+#  Copyright (c) 2016 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php
+#
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = QemuVideo
+  FILE_GUID                      = BA37F2C5-B0F3-4a95-B55F-F25F4F6F8452
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = PeiGraphicsEntryPoint
+
+[Sources]
+  QemuVideo.h
+  QemuVideo.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  IntelFsp2Pkg/IntelFsp2Pkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[LibraryClasses]
+  IoLib
+  DebugLib
+  MemoryAllocationLib
+  PeimEntryPoint
+  PeiServicesLib
+  PeiServicesTablePointerLib
+  PciLib
+  FspCommonLib
+
+[Guids]
+  gEfiGraphicsInfoHobGuid
+
+[Ppis]
+  gEfiPeiGraphicsPpiGuid
+
+[Protocols]
+  gEfiPciEnumerationCompleteProtocolGuid
+
+[Depex]
+  TRUE
+

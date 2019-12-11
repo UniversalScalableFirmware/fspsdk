@@ -420,6 +420,13 @@ class Symbols:
             matchKeyGroupIndex = 2
             matchSymbolGroupIndex  = 1
             prefix = '_'
+        elif reportLine.strip().find("XCODE") != -1:
+            #XCODE
+            #0x00001E29      0x00000013      [ 53] __ModuleEntryPoint
+            patchMapFileMatchString = "(0x[0-9a-fA-F]{8})\s+0x[0-9a-fA-F]{8}\s+\[.*\]\s+(\w+)$"
+            matchKeyGroupIndex = 2
+            matchSymbolGroupIndex  = 1
+            prefix = ''
         else:
             #MSFT
             #0003:00000190       _gComBase                  00007a50     SerialPo

@@ -1,0 +1,67 @@
+## @file
+#   FSP-M component implementation.
+#
+#  Copyright (c) 2017 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php.
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = FspmInit
+  FILE_GUID                      = 9E1CC850-6731-4848-8752-6673C7005EEE
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = FspmInitEntryPoint
+
+[Sources]
+  FspmInit.h
+  FspmInit.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  IntelFsp2Pkg/IntelFsp2Pkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[Ppis]
+  gEfiPeiResetPpiGuid                       ## PRODUCES
+  gEfiPeiMemoryDiscoveredPpiGuid            ## NOTIFY
+  gEfiPeiMasterBootModePpiGuid              ## PRODUCES
+  gEfiTemporaryRamSupportPpiGuid
+
+[Guids]
+  gFspReservedMemoryResourceHobGuid         ## CONSUMES
+  gFspBootLoaderTolumHobGuid                ## CONSUMES
+  gFspReservedMemoryResourceHobTsegGuid     ## CONSUMES
+
+[Protocols]
+  gEfiPciEnumerationCompleteProtocolGuid    ## CONSUMES
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdPciExpressBaseAddress
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamBase
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamSize
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspReservedBufferSize
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspReservedMemoryLength
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspAreaSize
+
+[LibraryClasses]
+  #
+  # Generic library class
+  #
+  PeimEntryPoint
+  FspPlatformLib
+  FspCommonLib
+  CacheLib
+  PciCf8Lib
+  PciLib
+
+[Depex]
+  TRUE

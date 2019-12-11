@@ -1,0 +1,63 @@
+## @file
+#  QEMU instance of Platform Sec Lib for FSP-S.
+#
+#  Copyright (c) 2017 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php.
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+################################################################################
+#
+# Defines Section - statements that will be processed to create a Makefile.
+#
+################################################################################
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = PlatformSecLibM
+  FILE_GUID                      = BA5CD127-1960-4fa0-B024-BA8EF79B5209
+  MODULE_TYPE                    = SEC
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = PlatformSecLib
+  CONSTRUCTOR                    = PlatformSecLibConstructor
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32
+#
+
+################################################################################
+#
+# Sources Section - list of files that are required for the build to succeed.
+#
+################################################################################
+
+[Sources]
+  PlatformSecLib.c
+  PlatformSecLib.h
+
+
+
+################################################################################
+#
+# Package Dependency Section - list of Package files that are required for
+#                              this module.
+#
+################################################################################
+
+[Packages]
+  MdePkg/MdePkg.dec
+  IntelFsp2Pkg/IntelFsp2Pkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[LibraryClasses]
+
+[Pcd]
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamBase
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamSize

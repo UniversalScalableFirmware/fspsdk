@@ -1,0 +1,55 @@
+## @file
+#   FSP-S component implementation.
+#
+#  Copyright (c) 2017 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php.
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = FspsInit
+  FILE_GUID                      = 131B73AC-C033-4DE1-8794-6DAB08E731CF
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = FspsInitEntryPoint
+
+[Sources]
+  FspsInit.h
+  FspsInit.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  IntelFsp2Pkg/IntelFsp2Pkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[Ppis]
+  gEfiEndOfPeiSignalPpiGuid                 ## CONSUMES
+  gEfiPeiStallPpiGuid                       ## CONSUMES
+  gEfiPeiGraphicsPpiGuid                    ## CONSUMES
+
+[Protocols]
+  gEfiPciEnumerationCompleteProtocolGuid    ## CONSUMES
+
+[Guids]
+  gEfiEventReadyToBootGuid                  ## CONSUMES ## Event
+  gFspEventEndOfFirmwareGuid                ## CONSUMES ## Event
+  gFspNonVolatileStorageHobGuid             ## CONSUMES
+
+[LibraryClasses]
+  #
+  # Generic library class
+  #
+  PeimEntryPoint
+  FspCommonLib
+
+[Pcd]
+
+[Depex]
+  TRUE

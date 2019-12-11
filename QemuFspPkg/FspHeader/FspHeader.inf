@@ -1,0 +1,49 @@
+## @file
+#   FSP information header component.
+#
+#  Copyright (c) 2017 - 2018, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php.
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+#
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = FspHeader
+  FILE_GUID                      = 912740BE-2284-4734-B971-84B027353F0C
+  MODULE_TYPE                    = USER_DEFINED
+  VERSION_STRING                 = 1.0
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 IPF EBC
+#
+
+[Sources]
+  FspHeader.aslc
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  IntelFsp2Pkg/IntelFsp2Pkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[Pcd]
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspHeaderSpecVersion
+  gQemuFspPkgTokenSpaceGuid.PcdFspHeaderRevision
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageIdString
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageAttributes
+  gQemuFspPkgTokenSpaceGuid.PcdFspComponentAttributes
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase
+  gQemuFspPkgTokenSpaceGuid.PcdFspImageRevision
+
+[FixedPcd]
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspMaxPatchEntry

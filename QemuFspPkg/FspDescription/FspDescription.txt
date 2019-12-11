@@ -1,0 +1,2 @@
+This FSP supports the following:
+  QEMU Q35/ICH9
