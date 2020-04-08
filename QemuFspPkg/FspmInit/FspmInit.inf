@@ -35,6 +35,8 @@
   gEfiPeiMemoryDiscoveredPpiGuid            ## NOTIFY
   gEfiPeiMasterBootModePpiGuid              ## PRODUCES
   gEfiTemporaryRamSupportPpiGuid
+  gEfiTemporaryRamSupportPpiGuid
+  gFspInApiModePpiGuid
 
 [Guids]
   gFspReservedMemoryResourceHobGuid         ## CONSUMES

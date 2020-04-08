@@ -112,6 +112,7 @@ WaitForNotify (
   @retval     EFI_OUT_OF_RESOURCES Insufficient resources to create database
 **/
 EFI_STATUS
+EFIAPI
 FspNotifyPhasePeimEntryPoint (
   IN       EFI_PEI_FILE_HANDLE    FileHandle,
   IN CONST EFI_PEI_SERVICES       **PeiServices

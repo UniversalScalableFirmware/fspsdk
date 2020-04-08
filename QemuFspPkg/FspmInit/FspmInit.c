@@ -124,11 +124,11 @@ ReportAndInstallNewFv (
 
   FspInfoHeader = GetFspInfoHeaderFromApiContext();
   if (FspInfoHeader->Signature != FSP_INFO_HEADER_SIGNATURE) {
-    DEBUG ((DEBUG_ERROR, "The signature of FspInfoHeader getting from API context is invalid at 0x%08X.\n", (UINT32)FspInfoHeader));
+    DEBUG ((DEBUG_ERROR, "The signature of FspInfoHeader getting from API context is invalid at %p.\n", FspInfoHeader));
     FspInfoHeader = GetFspInfoHeader();
   }
 
-  CurPtr = (UINT8 *)FspInfoHeader->ImageBase;
+  CurPtr = (UINT8 *)(UINTN)FspInfoHeader->ImageBase;
   EndPtr = CurPtr + FspInfoHeader->ImageSize - 1;
 
   while (CurPtr < EndPtr) {
@@ -139,7 +139,7 @@ ReportAndInstallNewFv (
     PeiServicesInstallFvInfoPpi (
       NULL,
       (VOID *)FvHeader,
-      (UINTN) FvHeader->FvLength,
+      (UINT32)FvHeader->FvLength,
       NULL,
       NULL
       );

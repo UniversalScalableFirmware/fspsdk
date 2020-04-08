@@ -248,6 +248,8 @@ class Symbols:
 
         for fv in self.fvList:
             self.dictVariable['_BASE_%s_' % fv['Name']] = fv['Base']
+            self.dictVariable['_OFFS_%s_' % fv['Name']] = fv['Offset']
+
         #
         # Search all MAP files in FFS directory if it exists then parse MOD MAP file
         #
@@ -371,6 +373,7 @@ class Symbols:
                        modName = self.dictGuidNameXref[modName.upper()]
                     self.dictModBase['%s:BASE'  % modName] = int (match.group(2), 16)
                     self.dictModBase['%s:ENTRY' % modName] = int (match.group(3), 16)
+                    self.dictSymbolAddress["%s:BASE" % modName] = match.group(2)
                 match = re.match("\(GUID=([A-Z0-9\-]+)\s+\.textbaseaddress=(0x[0-9a-fA-F]+)\s+\.databaseaddress=(0x[0-9a-fA-F]+)\)", rptLine)
                 if match is not None:
                     if foundModHdr:
@@ -429,8 +432,8 @@ class Symbols:
             prefix = ''
         else:
             #MSFT
-            #0003:00000190       _gComBase                  00007a50     SerialPo
-            patchMapFileMatchString =  "^\s[0-9a-fA-F]{4}:[0-9a-fA-F]{8}\s+(\w+)\s+([0-9a-fA-F]{8}\s+)"
+            #0003:00000190       _gComBase                     00007a50     SerialPort
+            patchMapFileMatchString =  "^\s[0-9a-fA-F]{4}:[0-9a-fA-F]{8}\s+(\w+)\s+([0-9a-fA-F]{8,16})\s+"
             matchKeyGroupIndex = 1
             matchSymbolGroupIndex  = 2
             prefix = ''
@@ -438,7 +441,10 @@ class Symbols:
         for reportLine in reportLines:
             match = re.match(patchMapFileMatchString, reportLine)
             if match is not None:
-                modSymbols[prefix + match.group(matchKeyGroupIndex)] = match.group(matchSymbolGroupIndex)
+                if prefix == '' and len(match.group(matchSymbolGroupIndex)) > 8:
+                    prefix = '_'
+                keyname = '%s' % (prefix + match.group(matchKeyGroupIndex))
+                modSymbols[keyname] = match.group(matchSymbolGroupIndex)
 
         # Handle extra module patchable PCD variable in Linux map since it might have different format
         # .data._gPcd_BinaryPatch_PcdVpdBaseAddress
@@ -449,7 +455,7 @@ class Symbols:
                 if handleNext:
                     handleNext = False
                     pcdName = match.group(1)
-                    match   = re.match("\s+(0x[0-9a-fA-F]{16})\s+", reportLine)
+                    match   = re.match("\s+(0x[0-9a-fA-F]{8,16})\s+", reportLine)
                     if match is not None:
                         modSymbols[prefix + pcdName] = match.group(1)
                 else:

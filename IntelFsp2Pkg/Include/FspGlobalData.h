@@ -42,8 +42,8 @@ typedef struct  {
    UINT32             Signature;
    UINT8              Version;
    UINT8              Reserved1[3];
-   UINT32             CoreStack;
-   UINT32             StatusCode;
+   UINTN              *CoreStack;
+   UINTN              StatusCode;
    UINT32             Reserved2[8];
    FSP_PLAT_DATA      PlatformData;
    FSP_INFO_HEADER    *FspInfoHeader;

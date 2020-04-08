@@ -74,7 +74,7 @@ FspGfxInitCallback (
   /// Call PeiGraphicsPpi.GraphicsPpiInit to initilize the display
   ///
   DEBUG ((DEBUG_INFO, "GraphicsPpiInit Start\n"));
-  Status = GfxInitPpi->GraphicsPpiInit ((VOID *)FspsUpd->FspsConfig.GraphicsConfigPtr);
+  Status = GfxInitPpi->GraphicsPpiInit ((VOID *)(UINTN)FspsUpd->FspsConfig.GraphicsConfigPtr);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "GraphicsPpiInit failed. \n"));
   }
@@ -222,7 +222,7 @@ FspsInitEntryPoint (
     //
     // Use the UpdRegion as default
     //
-    FspsUpd = (FSPS_UPD *) (FspInfoHeader->ImageBase + FspInfoHeader->CfgRegionOffset);
+    FspsUpd = (FSPS_UPD *)(UINTN)(FspInfoHeader->ImageBase + FspInfoHeader->CfgRegionOffset);
   }
   SetFspSiliconInitUpdDataPointer (FspsUpd);
 

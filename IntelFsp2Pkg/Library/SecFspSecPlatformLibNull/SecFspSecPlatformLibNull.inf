@@ -39,6 +39,10 @@
   Ia32/Flat32.nasm
   Ia32/SecCarInit.nasm
 
+[Sources.X64]
+  X64/Flat32.nasm
+  X64/SecCarInit.nasm
+
 ################################################################################
 #
 # Package Dependency Section - list of Package files that are required for

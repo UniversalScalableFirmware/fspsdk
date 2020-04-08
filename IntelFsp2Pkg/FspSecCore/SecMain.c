@@ -53,7 +53,7 @@ SecStartup (
   IN UINT32                   SizeOfRam,
   IN UINT32                   TempRamBase,
   IN VOID                    *BootFirmwareVolume,
-  IN PEI_CORE_ENTRY           PeiCore,
+  IN EFI_PEI_CORE_ENTRY_POINT PeiCore,
   IN UINT32                   BootLoaderStack,
   IN UINT32                   ApiIdx
   )
@@ -119,7 +119,7 @@ SecStartup (
   if (IdtDescriptor.Base == 0) {
     ExceptionHandler = FspGetExceptionHandler(mIdtEntryTemplate);
     for (Index = 0; Index < FixedPcdGet8(PcdFspMaxInterruptSupported); Index ++) {
-      CopyMem ((VOID*)&IdtTableInStack.IdtTable[Index], (VOID*)&ExceptionHandler, sizeof (UINT64));
+      CopyMem ((VOID*)&IdtTableInStack.IdtTable[Index], (VOID*)&ExceptionHandler, sizeof (IA32_IDT_GATE_DESCRIPTOR));
     }
     IdtSize = sizeof (IdtTableInStack.IdtTable);
   } else {
@@ -128,10 +128,10 @@ SecStartup (
       //
       // ERROR: IDT table size from boot loader is larger than FSP can support, DeadLoop here!
       //
-      CpuDeadLoop();
-    } else {
-      CopyMem ((VOID *) (UINTN) &IdtTableInStack.IdtTable, (VOID *) IdtDescriptor.Base, IdtSize);
+      IdtSize = sizeof (IdtTableInStack.IdtTable);
     }
+
+    CopyMem ((VOID *) (UINTN) &IdtTableInStack.IdtTable, (VOID *) IdtDescriptor.Base, IdtSize);
   }
   IdtDescriptor.Base  = (UINTN) &IdtTableInStack.IdtTable;
   IdtDescriptor.Limit = (UINT16)(IdtSize - 1);
@@ -173,6 +173,7 @@ SecStartup (
   DEBUG ((DEBUG_INFO, "Fsp PeiTemporaryRamSize    - 0x%x\n", SecCoreData.PeiTemporaryRamSize));
   DEBUG ((DEBUG_INFO, "Fsp StackBase              - 0x%x\n", SecCoreData.StackBase));
   DEBUG ((DEBUG_INFO, "Fsp StackSize              - 0x%x\n", SecCoreData.StackSize));
+  DEBUG ((DEBUG_INFO, "SecData                    - 0x%x\n", (UINT32)(UINTN)(&SecCoreData)));
 
   //
   // Call PeiCore Entry
@@ -210,16 +211,17 @@ SecTemporaryRamSupport (
   IN UINTN                    CopySize
   )
 {
-  IA32_DESCRIPTOR   IdtDescriptor;
-  VOID*             OldHeap;
-  VOID*             NewHeap;
-  VOID*             OldStack;
-  VOID*             NewStack;
-  UINTN             HeapSize;
-  UINTN             StackSize;
-
-  UINTN             CurrentStack;
-  UINTN             FspStackBase;
+  IA32_DESCRIPTOR           IdtDescriptor;
+  VOID*                     OldHeap;
+  VOID*                     NewHeap;
+  VOID*                     OldStack;
+  VOID*                     NewStack;
+  UINTN                     HeapSize;
+  UINTN                     StackSize;
+  UINTN                     StackAdj;
+  UINTN                     CurrentStack;
+  UINTN                     FspStackBase;
+  BASE_LIBRARY_JUMP_BUFFER  JumpBuffer;
 
   //
   // Override OnSeparateStack to 1 because this function will switch stack to permanent memory
@@ -285,14 +287,21 @@ SecTemporaryRamSupport (
   FspDataPointerFixUp ((UINTN)NewStack - (UINTN)OldStack);
 
   //
-  // SecSwitchStack function must be invoked after the memory migration
-  // immediately, also we need fixup the stack change caused by new call into
-  // permanent memory.
+  // Use SetJump()/LongJump() to switch to a new stack.
   //
-  SecSwitchStack (
-    (UINT32) (UINTN) OldStack,
-    (UINT32) (UINTN) NewStack
-    );
+  StackAdj = (UINT8 *)NewStack - (UINT8 *)OldStack;
+  if (SetJump (&JumpBuffer) == 0) {
+#if defined (MDE_CPU_IA32)
+    JumpBuffer.Esp = JumpBuffer.Esp + StackAdj;
+    JumpBuffer.Ebp = JumpBuffer.Ebp + StackAdj;
+#endif
+#if defined (MDE_CPU_X64)
+    JumpBuffer.Rsp = JumpBuffer.Rsp + StackAdj;
+    JumpBuffer.Rbp = JumpBuffer.Rbp + StackAdj;
+#endif
+    LongJump (&JumpBuffer, (UINTN)-1);
+  }
+
 
   return EFI_SUCCESS;
 }

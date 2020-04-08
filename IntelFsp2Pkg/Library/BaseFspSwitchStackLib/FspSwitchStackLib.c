@@ -20,13 +20,14 @@
 
 
 **/
-UINT32
+UINTN *
+EFIAPI
 SwapStack (
-  IN  UINT32 NewStack
+  IN  UINTN  *NewStack
   )
 {
   FSP_GLOBAL_DATA  *FspData;
-  UINT32         OldStack;
+  UINTN            *OldStack;
 
   FspData  = GetFspGlobalDataPointer ();
   OldStack = FspData->CoreStack;

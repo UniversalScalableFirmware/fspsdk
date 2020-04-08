@@ -184,13 +184,13 @@ EfiProgramMtrr (
   // MTRR Physical Base
   //
   TempQword = (MemoryAddress & ValidMtrrAddressMask) | MemoryCacheType;
-  AsmWriteMsr64 (MtrrNumber, TempQword);
+  AsmWriteMsr64 ((UINT32)MtrrNumber, TempQword);
 
   //
   // MTRR Physical Mask
   //
   TempQword = ~(MemoryLength - 1);
-  AsmWriteMsr64 (MtrrNumber + 1, (TempQword & ValidMtrrAddressMask) | B_EFI_MSR_CACHE_MTRR_VALID);
+  AsmWriteMsr64 ((UINT32)MtrrNumber + 1, (TempQword & ValidMtrrAddressMask) | B_EFI_MSR_CACHE_MTRR_VALID);
 
   EfiRecoverCacheMtrr (TRUE, OldMtrr);
 }

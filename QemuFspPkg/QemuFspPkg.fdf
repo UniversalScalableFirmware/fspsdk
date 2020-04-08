@@ -20,8 +20,8 @@ DEFINE FLASH_BLOCK_SIZE     = 0x00000100
 #
 # Flash Size for Visual Studio and GCC
 #
-DEFINE FLASH_SIZE           = 0x0003A000
-DEFINE FLASH_NUM_BLOCKS     = 0x3A0          #The number of blocks
+DEFINE FLASH_SIZE           = 0x00038000
+DEFINE FLASH_NUM_BLOCKS     = 0x380          #The number of blocks
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase  = 0x00000000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x00015000
@@ -30,7 +30,7 @@ SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase  = 0x00015000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00022000
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x00037000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00003000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00001000
 
 ################################################################################
 #
@@ -106,18 +106,16 @@ FvNameGuid         = 52F1AFB6-78A6-448f-8274-F370549AC5D0
 #
 # FSP header
 #
-INF  RuleOverride = FSPHEADER   $(FSP_PACKAGE)/FspHeader/FspHeader.inf
+INF  RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
 #
 # Project specific configuration data files
 #
-!ifndef $(CFG_PREBUILD)
 FILE RAW = $(FSP_T_UPD_FFS_GUID) {
     SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_T_UPD_TOOL_GUID).bin
 }
-!endif
 
-INF RuleOverride = RELOC   IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
+INF RuleOverride = RELOC  USE = IA32 IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
 
 [FV.FSP-M]
 BlockSize          = $(FLASH_BLOCK_SIZE)
@@ -142,30 +140,28 @@ FvNameGuid         = F32DB7DF-C5BC-423c-9416-08F1FA26A282
 #
 # FSP header
 #
-INF  RuleOverride = FSPHEADER   $(FSP_PACKAGE)/FspHeader/FspHeader.inf
+INF  RuleOverride = FSPHEADER  USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
 #
 # Project specific configuration data files
 #
-!ifndef $(CFG_PREBUILD)
 FILE RAW = $(FSP_M_UPD_FFS_GUID) {
     SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_M_UPD_TOOL_GUID).bin
 }
-!endif
 
 #
 # It is important to keep the proper order for these PEIMs
 # for this implementation
 #
-INF RuleOverride = RELOC   IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf
+INF RuleOverride = RELOC  IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf
 
-INF MdeModulePkg/Core/Pei/PeiMain.inf
-INF MdeModulePkg/Universal/PCD/Pei/Pcd.inf
+INF USE = X64 MdeModulePkg/Core/Pei/PeiMain.inf
+INF USE = X64 MdeModulePkg/Universal/PCD/Pei/Pcd.inf
 
 #
 # Project specific PEIMs
 #
-INF $(FSP_PACKAGE)/FspmInit/FspmInit.inf
+INF USE = X64 $(FSP_PACKAGE)/FspmInit/FspmInit.inf
 
 #
 # Description file
@@ -198,27 +194,24 @@ FvNameGuid         = 1B5C27FE-F01C-4fbc-AEAE-341B2E992A17
 #
 # FSP header
 #
-INF RuleOverride = FSPHEADER   $(FSP_PACKAGE)/FspHeader/FspHeader.inf
+INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
 #
 # Project specific configuration data files
 #
-!ifndef $(CFG_PREBUILD)
 FILE RAW = $(FSP_S_UPD_FFS_GUID) {
     SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_S_UPD_TOOL_GUID).bin
 }
-!endif
 
 #
 # It is important to keep the proper order for these PEIMs
 # for this implementation
 #
-INF RuleOverride = RELOC   IntelFsp2Pkg/FspSecCore/FspSecCoreS.inf
-
-INF MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
-INF RuleOverride = PE32  $(FSP_PACKAGE)/FspsInit/FspsInit.inf
-INF RuleOverride = PE32  $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
-INF RuleOverride = PE32    IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
+INF RuleOverride = RELOC  USE = X64  IntelFsp2Pkg/FspSecCore/FspSecCoreS.inf
+INF                       USE = X64 MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+INF RuleOverride = PE32   USE = X64   $(FSP_PACKAGE)/FspsInit/FspsInit.inf
+INF RuleOverride = PE32   USE = X64   $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
+INF RuleOverride = PE32   USE = X64   IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
 
 
 [Rule.Common.SEC]

@@ -469,7 +469,7 @@ CallPpiAndFillFrameBuffer (
   PlatformGraphicsOutput->GraphicsMode.PixelInformation     = Mode->Info->PixelInformation;
   PlatformGraphicsOutput->GraphicsMode.PixelsPerScanLine    = Mode->Info->PixelsPerScanLine;
   PlatformGraphicsOutput->FrameBufferBase                   = Mode->FrameBufferBase;
-  PlatformGraphicsOutput->FrameBufferSize                   = Mode->FrameBufferSize;
+  PlatformGraphicsOutput->FrameBufferSize                   = (UINT32)Mode->FrameBufferSize;
 
   ///
   /// Display Logo if user provides valid Bmp image
@@ -510,7 +510,7 @@ PeiGraphicsEntryPoint (
   UINT32         ResY;
 
   FspsUpd = (FSPS_UPD *)GetFspSiliconInitUpdDataPointer();
-  GfxPtr  = (GRAPHICS_DATA *)FspsUpd->FspsConfig.GraphicsConfigPtr;
+  GfxPtr  = (GRAPHICS_DATA *)(UINTN)FspsUpd->FspsConfig.GraphicsConfigPtr;
 
   if (!(GfxPtr && (GfxPtr->Signature == GRAPHICS_DATA_SIG))) {
     DEBUG ((DEBUG_INFO, "NO valid graphics config data found!\n"));
@@ -718,9 +718,9 @@ QemuPeiGraphicsInit (
 
   BochsInitMode ((UINT16)ResX, (UINT16)ResY, BPP, FspsUpd->FspsConfig.PciTempResourceBase);
 
-  GfxCfg.LogoPtr           = (VOID *)FspsUpd->FspsConfig.LogoPtr;
+  GfxCfg.LogoPtr           = (VOID *)(UINTN)FspsUpd->FspsConfig.LogoPtr;
   GfxCfg.LogoSize          = FspsUpd->FspsConfig.LogoSize;
-  GfxCfg.GraphicsConfigPtr = (VOID *)FspsUpd->FspsConfig.GraphicsConfigPtr;
+  GfxCfg.GraphicsConfigPtr = (VOID *)(UINTN)FspsUpd->FspsConfig.GraphicsConfigPtr;
   Status = CallPpiAndFillFrameBuffer (&GfxCfg);
 
   return Status;

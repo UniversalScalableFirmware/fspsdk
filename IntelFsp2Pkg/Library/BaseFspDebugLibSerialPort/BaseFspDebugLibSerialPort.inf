@@ -25,6 +25,9 @@
 [Sources.Ia32]
   Ia32/FspDebug.nasm
 
+[Sources.X64]
+  Ia32/FspDebug.nasm
+
 [Packages]
   MdePkg/MdePkg.dec
   IntelFsp2Pkg/IntelFsp2Pkg.dec

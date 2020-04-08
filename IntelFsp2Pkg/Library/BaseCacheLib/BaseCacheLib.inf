@@ -15,7 +15,7 @@
   VERSION_STRING                 = 1.0
   LIBRARY_CLASS                  = CacheLib
 
-[Sources.IA32]
+[Sources]
   CacheLib.c
   CacheLibInternal.h
 

@@ -115,7 +115,7 @@ SecGetPlatformData (
 VOID
 FspGlobalDataInit (
   IN OUT  FSP_GLOBAL_DATA    *PeiFspData,
-  IN UINT32                   BootLoaderStack,
+  IN UINTN                    BootLoaderStack,
   IN UINT8                    ApiIdx
   )
 {
@@ -131,7 +131,7 @@ FspGlobalDataInit (
 
   PeiFspData->Signature            = FSP_GLOBAL_DATA_SIGNATURE;
   PeiFspData->Version              = 0;
-  PeiFspData->CoreStack            = BootLoaderStack;
+  PeiFspData->CoreStack            = (UINTN *)BootLoaderStack;
   PeiFspData->PerfIdx              = 2;
   PeiFspData->PerfSig              = FSP_PERFORMANCE_DATA_SIGNATURE;
 
@@ -154,7 +154,7 @@ FspGlobalDataInit (
   //
   FspmUpdDataPtr = (VOID *) GetFspApiParameter ();
   if (FspmUpdDataPtr == NULL) {
-    FspmUpdDataPtr = (VOID *)(PeiFspData->FspInfoHeader->ImageBase + PeiFspData->FspInfoHeader->CfgRegionOffset);
+    FspmUpdDataPtr = (VOID *)(UINTN)(PeiFspData->FspInfoHeader->ImageBase + PeiFspData->FspInfoHeader->CfgRegionOffset);
   }
   SetFspUpdDataPointer (FspmUpdDataPtr);
   SetFspMemoryInitUpdDataPointer (FspmUpdDataPtr);
@@ -208,11 +208,11 @@ FspGlobalDataInit (
 **/
 VOID
 FspDataPointerFixUp (
-  IN UINT32   OffsetGap
+  IN UINTN   OffsetGap
   )
 {
   FSP_GLOBAL_DATA  *NewFspData;
 
-  NewFspData = (FSP_GLOBAL_DATA *)((UINTN)GetFspGlobalDataPointer() + (UINTN)OffsetGap);
+  NewFspData = (FSP_GLOBAL_DATA *)((UINTN)GetFspGlobalDataPointer() + OffsetGap);
   SetFspGlobalDataPointer (NewFspData);
 }

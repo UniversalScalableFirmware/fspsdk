@@ -24,7 +24,6 @@
 
 
 [Sources.IA32]
-  Ia32/Stack.nasm
   Ia32/FspApiEntryT.nasm
   Ia32/FspHelper.nasm
 
@@ -36,14 +35,16 @@
   IntelFsp2Pkg/IntelFsp2Pkg.dec
 
 [LibraryClasses]
-  BaseMemoryLib
   DebugLib
+  FspSecPlatformLib
+
+[LibraryClasses.IA32]
+  BaseMemoryLib
   BaseLib
   PciCf8Lib
   SerialPortLib
   FspSwitchStackLib
   FspCommonLib
-  FspSecPlatformLib
 
 [Pcd]
   gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamBase              ## CONSUMES

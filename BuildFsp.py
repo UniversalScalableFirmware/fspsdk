@@ -110,7 +110,6 @@ def get_visual_studio_info ():
                     if part.startswith(vs_node):
                         toolchain_ver = part[len(vs_node):]
                 break
-
     return (toolchain, toolchain_prefix, toolchain_path, toolchain_ver)
 
 
@@ -227,11 +226,14 @@ def Prebuild(target, toolchain):
               os.path.join(workspace, 'BaseTools/Conf/%s.template' % name),
               os.path.join(workspace, 'Conf/%s.txt' % name))
 
-    cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -m QemuFspPkg/FspHeader/FspHeader.inf -a IA32 -b %s -t %s -DCFG_PREBUILD' % (
-        'build' if os.name == 'posix' else 'build.bat', target, toolchain)
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        Fatal('Failed to prebuild QEMU FSP !')
+    #
+    # Not needed any more since EDKII already supported to list non-existing file in FDF
+    #
+    # cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -m QemuFspPkg/FspHeader/FspHeader.inf -a IA32 -b %s -t %s -DCFG_PREBUILD' % (
+    #     'build' if os.name == 'posix' else 'build.bat', target, toolchain)
+    # ret = subprocess.call(cmd.split(' '))
+    # if ret:
+    #     Fatal('Failed to prebuild QEMU FSP !')
 
     FspGuid = {
         'FspTUpdGuid'       : '34686CA3-34F9-4901-B82A-BA630F0714C6',
@@ -286,8 +288,9 @@ def Prebuild(target, toolchain):
 
 
 def Build (target, toolchain):
-    cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -a IA32 -b %s -t %s -y Report%s.log' % (
+    cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -a IA32 -a X64 -b %s -t %s -y Report%s.log' % (
         'build' if os.name == 'posix' else 'build.bat', target, toolchain, target)
+
     ret = subprocess.call(cmd.split(' '))
     if ret:
         Fatal('Failed to do Build QEMU FSP!')
@@ -301,13 +304,13 @@ def PostBuild (target, toolchain):
 
     patchfv = 'IntelFsp2Pkg/Tools/PatchFv.py'
     fvdir   = 'Build/QemuFspPkg/%s_%s/FV' % (target, toolchain)
-
+    build_type = 1 if target == 'RELEASE' else 0
     cmd1 = [
            "0x0000,            _BASE_FSP-T_,                                                                                       @Temporary Base",
            "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-T Size",
            "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-T Base",
            "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-T Image Attribute",
-           "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FFC) | 0x1000 | 0x0001 | 0x0002,                                      @FSP-T Component Attribute",
+           "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x1000 | 0x000%d | 0x0002,                                     @FSP-T Component Attribute" % build_type,
            "<[0x0000]>+0x00B8, 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA:0x1C - <[0x0000]>,                                             @FSP-T CFG Offset",
            "<[0x0000]>+0x00BC, [70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-T CFG Size",
            "<[0x0000]>+0x00C4, FspSecCoreT:_TempRamInitApi - [0x0000],                                                             @TempRamInit API",
@@ -320,7 +323,7 @@ def PostBuild (target, toolchain):
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-M Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-M Base",
          "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-M Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FFC) | 0x2000 | 0x0001 | 0x0002,                                      @FSP-M Component Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x2000 | 0x000%d | 0x0002 | 0x0004,                            @FSP-M Component Attribute"  % build_type,
          "<[0x0000]>+0x00B8, D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x1C - <[0x0000]>,                                             @FSP-M CFG Offset",
          "<[0x0000]>+0x00BC, [D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-M CFG Size",
          "<[0x0000]>+0x00D0, FspSecCoreM:_FspMemoryInitApi - [0x0000],                                                           @MemoryInitApi API",
@@ -335,7 +338,7 @@ def PostBuild (target, toolchain):
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-S Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-S Base",
          "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-S Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FFC) | 0x3000 | 0x0001 | 0x0002                      ,                @FSP-S Component Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x3000 | 0x000%d | 0x0002 | 0x0004,                            @FSP-S Component Attribute"  % build_type,
          "<[0x0000]>+0x00B8, E3CD9B18-998C-4F76-B65E-98B154E5446F:0x1C - <[0x0000]>,                                             @FSP-S CFG Offset",
          "<[0x0000]>+0x00BC, [E3CD9B18-998C-4F76-B65E-98B154E5446F:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-S CFG Size",
          "<[0x0000]>+0x00D8, FspSecCoreS:_FspSiliconInitApi - [0x0000],                                                          @SiliconInit API",

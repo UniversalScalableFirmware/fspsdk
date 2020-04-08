@@ -39,7 +39,7 @@
   PLATFORM_VERSION               = 0.1
   DSC_SPECIFICATION              = 0x00010005
   OUTPUT_DIRECTORY               = Build/QemuFspPkg
-  SUPPORTED_ARCHITECTURES        = IA32
+  SUPPORTED_ARCHITECTURES        = IA32|X64
   BUILD_TARGETS                  = DEBUG|RELEASE
   SKUID_IDENTIFIER               = DEFAULT
   FLASH_DEFINITION               = QemuFspPkg/QemuFspPkg.fdf
@@ -366,6 +366,11 @@
 #       generated for it, but the binary will not be put into any firmware volume.
 #
 ###################################################################################################
+[Components]
+  #
+  # FSP Binary Components
+  #
+  $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
 [Components.IA32]
   #
@@ -376,6 +381,7 @@
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecTLib.inf
   }
 
+[Components.X64]
   IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf {
     <LibraryClasses>
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecMLib.inf
@@ -400,10 +406,6 @@
       PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
   }
 
-  #
-  # FSP Binary Components
-  #
-  $(FSP_PACKAGE)/FspHeader/FspHeader.inf
   $(FSP_PACKAGE)/FspmInit/FspmInit.inf
   $(FSP_PACKAGE)/FspsInit/FspsInit.inf
   $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
@@ -432,4 +434,3 @@
   *_GCC5_IA32_DLINK_FLAGS = -no-pie
   *_GCC5_IA32_ASLCC_FLAGS = -fno-pic
   *_GCC5_IA32_ASLDLINK_FLAGS = -no-pie
-  *_XCODE5_IA32_CC_FLAGS = -flto

@@ -27,24 +27,16 @@
 //   sidt    fword ptr [esp]
 //
 typedef struct {
-  UINT16    IdtrLimit;
-  UINT32    IdtrBase;
-  UINT16    Reserved;
-  UINT32    Edi;
-  UINT32    Esi;
-  UINT32    Ebp;
-  UINT32    Esp;
-  UINT32    Ebx;
-  UINT32    Edx;
-  UINT32    Ecx;
-  UINT32    Eax;
-  UINT16    Flags[2];
-  UINT32    FspInfoHeader;
-  UINT32    ApiRet;
-  UINT32    ApiParam[2];
+  UINT64   ApiParam[2];
+  UINT64   ApiRet;
+  UINT64   FspInfoHeader;
+  UINT64   Reg[8];     //RAX, RBX, RCX, RDX, RSI, RDI, RBP, FLG
+  UINT64   Rxx[8];     //R8 .. R15
+  UINT64   Xmm[10*2];  //XMM6-XMM15
+  UINT64   Idtr[2];
 } CONTEXT_STACK;
 
-#define CONTEXT_STACK_OFFSET(x)  (UINT32)&((CONTEXT_STACK *)(UINTN)0)->x
+#define CONTEXT_STACK_OFFSET(x)  (UINT32)(UINTN)&((CONTEXT_STACK *)(UINTN)0)->x
 
 #pragma pack()
 
@@ -74,9 +66,12 @@ GetFspGlobalDataPointer (
   VOID
   )
 {
+  UINT32             Base;
   FSP_GLOBAL_DATA   *FspData;
 
-  FspData = *(FSP_GLOBAL_DATA  **)(UINTN)PcdGet32(PcdGlobalDataPointerAddress);
+  Base = *(UINT32 *)(UINTN)PcdGet32(PcdGlobalDataPointerAddress);
+  FspData = (FSP_GLOBAL_DATA *)(UINTN)Base;
+
   return FspData;
 }
 
@@ -85,7 +80,7 @@ GetFspGlobalDataPointer (
 
   @retval ApiParameter FSP API first parameter passed by the bootloader.
 **/
-UINT32
+UINTN
 EFIAPI
 GetFspApiParameter (
   VOID
@@ -94,7 +89,7 @@ GetFspApiParameter (
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  return *(UINT32 *)(UINTN)(FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[0]));
+  return *(UINTN *)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[0]));
 }
 
 /**
@@ -111,7 +106,7 @@ GetFspEntryStack (
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  return (VOID*)(FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[0]));
+  return (VOID*)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[0]));
 }
 
 /**
@@ -119,7 +114,7 @@ GetFspEntryStack (
 
   @retval ApiParameter FSP API second parameter passed by the bootloader.
 **/
-UINT32
+UINTN
 EFIAPI
 GetFspApiParameter2 (
   VOID
@@ -128,7 +123,7 @@ GetFspApiParameter2 (
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  return *(UINT32 *)(UINTN)(FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[1]));
+  return *(UINTN *)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam[1]));
 }
 
 /**
@@ -146,7 +141,7 @@ SetFspApiParameter (
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  *(UINT32 *)(UINTN)(FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam)) = Value;
+  *(UINT32 *)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(ApiParam)) = Value;
 }
 
 /**
@@ -158,13 +153,13 @@ SetFspApiParameter (
 VOID
 EFIAPI
 SetFspApiReturnStatus (
-  IN UINT32  ReturnStatus
+  IN UINTN  ReturnStatus
   )
 {
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  *(UINT32 *)(UINTN)(FspData->CoreStack + CONTEXT_STACK_OFFSET(Eax)) = ReturnStatus;
+  *(UINTN *)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(Reg[0])) = ReturnStatus;
 }
 
 /**
@@ -180,19 +175,19 @@ SetFspCoreStackPointer (
   )
 {
   FSP_GLOBAL_DATA  *FspData;
-  UINT32           *OldStack;
-  UINT32           *NewStack;
+  UINTN            *OldStack;
+  UINTN            *NewStack;
   UINT32           StackContextLen;
 
   FspData  = GetFspGlobalDataPointer ();
-  StackContextLen = sizeof(CONTEXT_STACK) / sizeof(UINT32);
+  StackContextLen = sizeof(CONTEXT_STACK) / sizeof(UINTN);
 
   //
   // Reserve space for the ContinuationFunc two parameters
   //
-  OldStack = (UINT32 *)FspData->CoreStack;
-  NewStack = (UINT32 *)NewStackTop - StackContextLen - 2;
-  FspData->CoreStack = (UINT32)NewStack;
+  OldStack = (UINTN *)FspData->CoreStack;
+  NewStack = (UINTN *)NewStackTop - (StackContextLen + 2);
+  FspData->CoreStack = NewStack;
   while (StackContextLen-- != 0) {
     *NewStack++ = *OldStack++;
   }
@@ -432,7 +427,8 @@ GetFspInfoHeaderFromApiContext (
   FSP_GLOBAL_DATA  *FspData;
 
   FspData  = GetFspGlobalDataPointer ();
-  return  (FSP_INFO_HEADER *)(*(UINT32 *)(UINTN)(FspData->CoreStack + CONTEXT_STACK_OFFSET(FspInfoHeader)));
+
+  return  (FSP_INFO_HEADER *)(*(UINTN *)((UINTN)FspData->CoreStack + CONTEXT_STACK_OFFSET(FspInfoHeader)));
 }
 
 /**
@@ -449,7 +445,7 @@ GetFspCfgRegionDataPointer (
   FSP_INFO_HEADER   *FspInfoHeader;
 
   FspInfoHeader = GetFspInfoHeader ();
-  return (VOID *)(FspInfoHeader->ImageBase + FspInfoHeader->CfgRegionOffset);
+  return (VOID *)(UINTN)(FspInfoHeader->ImageBase + FspInfoHeader->CfgRegionOffset);
 }
 
 /**
@@ -488,7 +484,7 @@ SetFspApiCallingIndex (
 
   @retval StatusCode
 **/
-UINT32
+UINTN
 EFIAPI
 GetPhaseStatusCode (
   VOID

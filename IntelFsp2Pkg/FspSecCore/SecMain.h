@@ -36,8 +36,8 @@ typedef struct _SEC_IDT_TABLE {
   // Note: For IA32, only the 4 bytes immediately preceding IDT is used to store
   // EFI_PEI_SERVICES**
   //
-  UINT64            PeiService;
-  UINT64            IdtTable[FixedPcdGet8 (PcdFspMaxInterruptSupported)];
+  UINT64                    PeiService;
+  IA32_IDT_GATE_DESCRIPTOR  IdtTable[FixedPcdGet8 (PcdFspMaxInterruptSupported)];
 } SEC_IDT_TABLE;
 
 /**
@@ -105,7 +105,7 @@ SecStartup (
   IN UINT32                   SizeOfRam,
   IN UINT32                   TempRamBase,
   IN VOID                    *BootFirmwareVolume,
-  IN PEI_CORE_ENTRY           PeiCore,
+  IN EFI_PEI_CORE_ENTRY_POINT PeiCore,
   IN UINT32                   BootLoaderStack,
   IN UINT32                   ApiIdx
   );

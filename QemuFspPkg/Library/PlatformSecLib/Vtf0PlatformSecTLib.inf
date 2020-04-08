@@ -45,6 +45,9 @@
 [Sources.IA32]
   Ia32/SecEntry.nasm
 
+[Sources.X64]
+  X64/SecEntry.nasm
+
 ################################################################################
 #
 # Package Dependency Section - list of Package files that are required for
