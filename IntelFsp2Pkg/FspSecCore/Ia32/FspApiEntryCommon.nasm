@@ -7,6 +7,18 @@
 
     SECTION .text
 
+;
+; Following functions will be provided in C
+;
+extern ASM_PFX(Loader2PeiSwitchStack)
+extern ASM_PFX(FspApiCallingCheck)
+
+;
+; Following functions will be provided in ASM
+;
+extern ASM_PFX(FspApiCommonContinue)
+extern ASM_PFX(AsmGetFspInfoHeader)
+
 ;----------------------------------------------------------------------------
 ; FspApiCommon API
 ;

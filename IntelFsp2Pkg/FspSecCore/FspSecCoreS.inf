@@ -31,7 +31,7 @@
   X64/FspHelper.nasm
 
 [Sources.IA32]
-  #Ia32/Stack.nasm
+  Ia32/Stack.nasm
   Ia32/FspApiEntryS.nasm
   Ia32/FspApiEntryCommon.nasm
   Ia32/FspHelper.nasm

@@ -30,6 +30,90 @@ from ctypes import *
 def get_file_data (file, mode = 'rb'):
     return open(file, mode).read()
 
+def copy_file_list (copy_list, fsp_dir, sbl_dir):
+    print ('Copy FSP into Slim Bootloader source tree ...')
+    for src_path, dst_path in copy_list:
+        src_path = os.path.join (fsp_dir, src_path)
+        dst_path = os.path.join (sbl_dir, dst_path)
+        if not os.path.exists(os.path.dirname(dst_path)):
+            os.makedirs(os.path.dirname(dst_path))
+        print ('Copy:  %s\n  To:  %s' % (os.path.abspath(src_path), os.path.abspath(dst_path)))
+        shutil.copy (src_path, dst_path)
+    print ('Done\n')
+
+def check_for_python():
+    '''
+    Verify Python executable is at required version
+    '''
+    cmd = [sys.executable, '-c', 'import sys; import platform; print(platform.python_version())']
+    version = run_process (cmd, capture_out = True).strip()
+    ver_parts = version.split('.')
+    # Require Python 3.6 or above
+    if not (len(ver_parts) >= 2 and int(ver_parts[0]) >= 3 and int(ver_parts[1]) >= 6):
+        raise SystemExit ('ERROR: Python version ' + version + ' is not supported any more !\n       ' +
+                          'Please install and use Python 3.6 or above to launch build script !\n')
+
+    return version
+
+def print_tool_version_info(cmd, version):
+    try:
+        if os.name == 'posix':
+            cmd = subprocess.check_output(['which', cmd], stderr=subprocess.STDOUT).decode().strip()
+    except:
+        pass
+    print ('Using %s, Version %s' % (cmd, version))
+
+
+def check_for_openssl():
+    '''
+    Verify OpenSSL executable is available
+    '''
+    cmd = get_openssl_path ()
+    try:
+        version = subprocess.check_output([cmd, 'version']).decode().strip()
+    except:
+        print('ERROR: OpenSSL not available. Please set OPENSSL_PATH.')
+        sys.exit(1)
+    print_tool_version_info(cmd, version)
+    return version
+
+def check_for_nasm():
+    '''
+    Verify NASM executable is available
+    '''
+    cmd = os.path.join(os.environ.get('NASM_PREFIX', ''), 'nasm')
+    try:
+        version = subprocess.check_output([cmd, '-v']).decode().strip()
+    except:
+        print('ERROR: NASM not available. Please set NASM_PREFIX.')
+        sys.exit(1)
+    print_tool_version_info(cmd, version)
+    return version
+
+def check_for_git():
+    '''
+    Verify Git executable is available
+    '''
+    cmd = 'git'
+    try:
+        version = subprocess.check_output([cmd, '--version']).decode().strip()
+    except:
+        print('ERROR: Git not found. Please install Git or check if Git is in the PATH environment variable.')
+        sys.exit(1)
+    print_tool_version_info(cmd, version)
+    return version
+
+def get_openssl_path ():
+    if os.name == 'nt':
+        if 'OPENSSL_PATH' not in os.environ:
+            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\"
+        if 'OPENSSL_CONF' not in os.environ:
+            openssl_cfg = "C:\\Openssl\\openssl.cfg"
+            if os.path.exists(openssl_cfg):
+                os.environ['OPENSSL_CONF'] = openssl_cfg
+    openssl = os.path.join(os.environ.get ('OPENSSL_PATH', ''), 'openssl')
+    return openssl
+
 def run_process (arg_list, print_cmd = False, capture_out = False):
     sys.stdout.flush()
     if print_cmd:
@@ -77,21 +161,25 @@ def get_visual_studio_info ():
     if os.path.exists (vswhere_path):
         cmd = [vswhere_path, '-all', '-property', 'installationPath']
         lines = run_process (cmd, capture_out = True)
-        vscommon_path = ''
+        vscommon_paths = []
         for each in lines.splitlines ():
             each = each.strip()
             if each and os.path.isdir(each):
-                vscommon_path = each
-        vcver_file = vscommon_path + '\\VC\\Auxiliary\\Build\\Microsoft.VCToolsVersion.default.txt'
-        if os.path.exists(vcver_file):
-            for vs_ver in ['2017']:
-                check_path = '\\Microsoft Visual Studio\\%s\\' % vs_ver
-                if check_path in vscommon_path:
-                    toolchain_ver    = get_file_data (vcver_file, 'r').strip()
-                    toolchain_prefix = 'VS%s_PREFIX' % (vs_ver)
-                    toolchain_path   = vscommon_path + '\\VC\\Tools\\MSVC\\%s\\' % toolchain_ver
-                    toolchain='VS%s' % (vs_ver)
-                    break
+                vscommon_paths.append(each)
+
+        for vs_ver in ['2019', '2017']:
+            for vscommon_path in vscommon_paths:
+                vcver_file = vscommon_path + '\\VC\\Auxiliary\\Build\\Microsoft.VCToolsVersion.default.txt'
+                if os.path.exists(vcver_file):
+                    check_path = '\\Microsoft Visual Studio\\%s\\' % vs_ver
+                    if check_path in vscommon_path:
+                        toolchain_ver    = get_file_data (vcver_file, 'r').strip()
+                        toolchain_prefix = 'VS%s_PREFIX' % (vs_ver)
+                        toolchain_path   = vscommon_path + '\\VC\\Tools\\MSVC\\%s\\' % toolchain_ver
+                        toolchain = 'VS%s' % (vs_ver)
+                        break
+            if toolchain:
+                break
 
     if toolchain == '':
         vs_ver_list = [
@@ -110,31 +198,22 @@ def get_visual_studio_info ():
                     if part.startswith(vs_node):
                         toolchain_ver = part[len(vs_node):]
                 break
+
     return (toolchain, toolchain_prefix, toolchain_path, toolchain_ver)
 
 
 def rebuild_basetools ():
-    exe_list = 'GenFfs  GenFv  GenFw  GenSec LzmaCompress'.split()
+    exe_list = 'GenFfs  GenFv  GenFw  GenSec  LzmaCompress'.split()
     ret = 0
-    workspace = os.environ['WORKSPACE']
-
-    cmd = [sys.executable, '-c', 'import sys; import platform; print(", ".join([sys.executable, platform.python_version()]))']
-    py_out = run_process (cmd, capture_out = True)
-    parts  = py_out.split(',')
-    if len(parts) > 1:
-        py_exe, py_ver = parts
-        os.environ['PYTHON_COMMAND'] = py_exe
-        print ('Using %s, Version %s' % (os.environ['PYTHON_COMMAND'], py_ver.rstrip()))
-    else:
-        os.environ['PYTHON_COMMAND'] = 'python'
+    fspsource = os.environ['WORKSPACE']
 
     if os.name == 'posix':
-        if not check_files_exist (exe_list, os.path.join(workspace, 'BaseTools', 'Source', 'C', 'bin')):
-            ret = subprocess.call(['make', '-C', 'BaseTools'])
+        if not check_files_exist (exe_list, os.path.join(fspsource, 'BaseTools', 'Source', 'C', 'bin')):
+            ret = run_process (['make', '-C', 'BaseTools'])
 
     elif os.name == 'nt':
 
-        if not check_files_exist (exe_list, os.path.join(workspace, 'BaseTools', 'Bin', 'Win32'), '.exe'):
+        if not check_files_exist (exe_list, os.path.join(fspsource, 'BaseTools', 'Bin', 'Win32'), '.exe'):
             print ("Could not find pre-built BaseTools binaries, try to rebuild BaseTools ...")
             ret = run_process (['BaseTools\\toolsetup.bat', 'forcerebuild'])
 
@@ -143,28 +222,45 @@ def rebuild_basetools ():
         sys.exit(1)
 
 
-def prep_env():
-    work_dir = os.path.dirname(os.path.realpath(__file__))
-    os.chdir(work_dir)
+
+def create_conf (workspace, sbl_source):
+    # create conf and build folder if not exist
+    workspace = os.environ['WORKSPACE']
+    if not os.path.exists(os.path.join(workspace, 'Conf')):
+        os.makedirs(os.path.join(workspace, 'Conf'))
+    for name in ['target', 'tools_def', 'build_rule']:
+        txt_file = os.path.join(workspace, 'Conf/%s.txt' % name)
+        if not os.path.exists(txt_file):
+            shutil.copy (
+                os.path.join(sbl_source, 'BaseTools/Conf/%s.template' % name),
+                os.path.join(workspace, 'Conf/%s.txt' % name))
+
+def prep_env ():
+    # check python version first
+    version = check_for_python ()
+    os.environ['PYTHON_COMMAND'] = '"' + sys.executable + '"'
+    print_tool_version_info(os.environ['PYTHON_COMMAND'], version.strip())
+
+    sblsource = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(sblsource)
     if sys.platform == 'darwin':
         toolchain = 'XCODE5'
-        os.environ['PATH'] = os.environ['PATH'] + ':' + os.path.join(work_dir, 'BaseTools/BinWrappers/PosixLike')
+        os.environ['PATH'] = os.environ['PATH'] + ':' + os.path.join(sblsource, 'BaseTools/BinWrappers/PosixLike')
         clang_ver = run_process (['clang', '-dumpversion'], capture_out = True)
         clang_ver = clang_ver.strip()
         toolchain_ver = clang_ver
     elif os.name == 'posix':
         toolchain = 'GCC49'
-        gcc_ver = subprocess.Popen(['gcc', '-dumpversion'], stdout=subprocess.PIPE)
-        (gcc_ver, err) = subprocess.Popen(['sed', 's/\\..*//'], stdin=gcc_ver.stdout, stdout=subprocess.PIPE).communicate()
-        if int(gcc_ver) > 4:
+        gcc_ver = run_process (['gcc', '-dumpversion'], capture_out = True)
+        gcc_ver = gcc_ver.strip()
+        if int(gcc_ver.split('.')[0]) > 4:
             toolchain = 'GCC5'
-
-        os.environ['PATH'] = os.environ['PATH'] + ':' + os.path.join(work_dir, 'BaseTools/BinWrappers/PosixLike')
+        os.environ['PATH'] = os.environ['PATH'] + ':' + os.path.join(sblsource, 'BaseTools/BinWrappers/PosixLike')
         toolchain_ver = gcc_ver
     elif os.name == 'nt':
-        os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.join(work_dir, 'BaseTools\\Bin\\Win32')
-        os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.join(work_dir, 'BaseTools\\BinWrappers\\WindowsLike')
-        os.environ['PYTHONPATH'] = os.path.join(work_dir, 'BaseTools', 'Source', 'Python')
+        os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.join(sblsource, 'BaseTools\\Bin\\Win32')
+        os.environ['PATH'] = os.environ['PATH'] + ';' + os.path.join(sblsource, 'BaseTools\\BinWrappers\\WindowsLike')
+        os.environ['PYTHONPATH'] = os.path.join(sblsource, 'BaseTools', 'Source', 'Python')
 
         toolchain, toolchain_prefix, toolchain_path, toolchain_ver = get_visual_studio_info ()
         if toolchain:
@@ -182,58 +278,37 @@ def prep_env():
         print("Unsupported operating system !")
         sys.exit(1)
 
-    print ('Using %s, Version %s' % (toolchain, toolchain_ver))
+    if 'SBL_KEY_DIR' not in os.environ:
+        os.environ['SBL_KEY_DIR'] = "../SblKeys/"
+
+    print_tool_version_info(toolchain, toolchain_ver)
+
+    check_for_openssl()
+    check_for_nasm()
+    check_for_git()
 
     # Update Environment vars
-    os.environ['EDK_TOOLS_PATH'] = os.path.join(work_dir, 'BaseTools')
-    os.environ['BASE_TOOLS_PATH'] = os.path.join(work_dir, 'BaseTools')
+    os.environ['WINSDK_PATH_FOR_RC_EXE']  = "C:\\Program Files (x86)\\Microsoft SDKs\\Windows\\v7.1A\\Bin\\"
+    os.environ['EDK_TOOLS_PATH'] = os.path.join(sblsource, 'BaseTools')
+    os.environ['BASE_TOOLS_PATH'] = os.path.join(sblsource, 'BaseTools')
     if 'WORKSPACE' not in os.environ:
-        os.environ['WORKSPACE'] = work_dir
+        os.environ['WORKSPACE'] = sblsource
     os.environ['CONF_PATH']     = os.path.join(os.environ['WORKSPACE'], 'Conf')
     os.environ['TOOL_CHAIN']    = toolchain
 
-    return (work_dir, toolchain)
+    create_conf (os.environ['WORKSPACE'], sblsource)
 
+    return toolchain
 
-def Fatal(msg):
+def fatal(msg):
     sys.stdout.flush()
     raise Exception(msg)
 
 
-def CopyFileList (copy_list, fsp_dir, sbl_dir):
-    print ('Copy FSP into Slim Bootloader source tree ...')
-    for src_path, dst_path in copy_list:
-        src_path = os.path.join (fsp_dir, src_path)
-        dst_path = os.path.join (sbl_dir, dst_path)
-        if not os.path.exists(os.path.dirname(dst_path)):
-            os.makedirs(os.path.dirname(dst_path))
-        print ('Copy:  %s\n  To:  %s' % (os.path.abspath(src_path), os.path.abspath(dst_path)))
-        shutil.copy (src_path, dst_path)
-    print ('Done\n')
-
-
-def Prebuild(target, toolchain):
-
-    rebuild_basetools ()
+def pre_build(target, toolchain, fsppkg):
 
     workspace = os.environ['WORKSPACE']
-    if not os.path.exists(os.path.join(workspace, 'Conf')):
-        os.makedirs(os.path.join(workspace, 'Conf'))
-    for name in ['target', 'tools_def', 'build_rule']:
-        txt_file = os.path.join(workspace, 'Conf/%s.txt' % name)
-        if not os.path.exists(txt_file):
-            shutil.copy (
-              os.path.join(workspace, 'BaseTools/Conf/%s.template' % name),
-              os.path.join(workspace, 'Conf/%s.txt' % name))
-
-    #
-    # Not needed any more since EDKII already supported to list non-existing file in FDF
-    #
-    # cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -m QemuFspPkg/FspHeader/FspHeader.inf -a IA32 -b %s -t %s -DCFG_PREBUILD' % (
-    #     'build' if os.name == 'posix' else 'build.bat', target, toolchain)
-    # ret = subprocess.call(cmd.split(' '))
-    # if ret:
-    #     Fatal('Failed to prebuild QEMU FSP !')
+    pkgname   = '%sFspPkg' % fsppkg
 
     FspGuid = {
         'FspTUpdGuid'       : '34686CA3-34F9-4901-B82A-BA630F0714C6',
@@ -245,11 +320,12 @@ def Prebuild(target, toolchain):
     print('Preparing VPD/UPD Information...')
 
     pkgname = 'QemuFspPkg'
+
     cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py UPDTXT %s/%s.dsc Build/%s/%s_%s/FV' % (
            workspace, pkgname, pkgname, pkgname, target, toolchain)
     ret = subprocess.call(cmd.split(' '))
     if not (ret == 0 or ret == 256):
-        Fatal('Failed to generate UPD txt file !')
+        fatal('Failed to generate UPD txt file !')
 
     print('UPD TXT file was generated successfully !')
 
@@ -267,43 +343,32 @@ def Prebuild(target, toolchain):
             os.remove(filepath)
         ret = subprocess.call(cmd.split(' '))
         if ret:
-            Fatal('Failed to generate UPD bin file !')
+            fatal('Failed to generate UPD bin file !')
 
     cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
           workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
     ret = subprocess.call(cmd.split(' '))
     if ret:
-        Fatal('Failed to generate UPD header file !')
+        fatal('Failed to generate UPD header file !')
 
     print('Generate BSF File ...')
     cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
           workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
     ret = subprocess.call(cmd.split(' '))
     if ret:
-        Fatal('Failed to generate UPD BSF file !')
+        fatal('Failed to generate UPD BSF file !')
 
     for fliename in ['FspUpd.h', 'FsptUpd.h', 'FspmUpd.h', 'FspsUpd.h']:
         shutil.copyfile('%s/%s' % (fvdir, fliename), '%s/Include/%s'%(pkgname, fliename))
     print('End of PreBuild...')
 
 
-def Build (target, toolchain):
-    cmd = '%s -p QemuFspPkg/QemuFspPkg.dsc -a IA32 -a X64 -b %s -t %s -y Report%s.log' % (
-        'build' if os.name == 'posix' else 'build.bat', target, toolchain, target)
-
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        Fatal('Failed to do Build QEMU FSP!')
-
-    print('End of Build...')
-
-
-def PostBuild (target, toolchain):
+def post_build (target, toolchain, fsppkg):
 
     print ('Start of PostBuild ...')
 
     patchfv = 'IntelFsp2Pkg/Tools/PatchFv.py'
-    fvdir   = 'Build/QemuFspPkg/%s_%s/FV' % (target, toolchain)
+    fvdir   = 'Build/%s/%s_%s/FV' % (fsppkg, target, toolchain)
     build_type = 1 if target == 'RELEASE' else 0
     cmd1 = [
            "0x0000,            _BASE_FSP-T_,                                                                                       @Temporary Base",
@@ -353,7 +418,7 @@ def PostBuild (target, toolchain):
         line.extend(cmd)
         ret = subprocess.call(line)
         if ret:
-            Fatal('Failed to do PostBuild QEMU FSP!')
+            fatal('Failed to do PostBuild QEMU FSP!')
 
     copy_list = [
         ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
@@ -363,36 +428,88 @@ def PostBuild (target, toolchain):
         ('FspmUpd.h',   'FspmUpd.h'),
         ('FspsUpd.h',   'FspsUpd.h'),
     ]
-    CopyFileList (copy_list, fvdir, 'BuildFsp')
+    copy_file_list (copy_list, fvdir, 'BuildFsp')
 
     print('End of PostBuild...')
 
 
-def Main():
-    curr_dir      = os.path.dirname (os.path.realpath(__file__))
-    sbl_dir       = os.path.abspath (os.path.join(curr_dir, '../..'))
-    fsp_repo_dir  = os.path.abspath (os.path.join(curr_dir, '../../../IntelFsp'))
-    qemu_repo_dir = os.path.abspath (os.path.join(curr_dir, '../../../QemuFsp'))
+def main():
 
-    if len(sys.argv) < 2:
-        target = 'DEBUG'
-    else:
-        if sys.argv[1] == '/r':
-            target = 'RELEASE'
-        elif sys.argv[1] == '/d':
-            target = 'DEBUG'
-        else:
-            print ('Unknown target %s !' % sys.argv[1])
-            return -1
+  toolchain = prep_env ()
 
-    workspace, toolchain = prep_env()
-    os.environ['WORKSPACE'] = workspace
-    Prebuild  (target, toolchain)
-    Build     (target, toolchain)
-    PostBuild (target, toolchain)
+  ap = argparse.ArgumentParser()
+  sp = ap.add_subparsers(help='command')
 
-    return 0
+  def cmd_build(args):
+      # Check if BaseTools has been compiled
+      rebuild_basetools ()
+
+      # Build a specified DSC file
+      def_list = []
+      if args.define is not None:
+          for each in args.define:
+              def_list.extend (['-D', '%s' % each])
+
+      arch_list = []
+      if args.arch == 'x64':
+          arch_list = ['-a', 'IA32', '-a', 'X64']
+      else:  # IA32
+          arch_list = ['-a', 'IA32']
+
+      fsp_pkg = args.platform[0].upper() + args.platform[1:] + 'FspPkg'
+      target  = 'RELEASE' if args.release else 'DEBUG'
+
+      pre_build (target, toolchain, fsp_pkg)
+
+      cmd_args = [
+          "build" if os.name == 'posix' else "build.bat",
+          "--platform", '%s/%s.dsc' % (fsp_pkg, fsp_pkg),
+          "-b",         target,
+          "--tagname",  os.environ['TOOL_CHAIN'],
+          "-n",         str(multiprocessing.cpu_count()),
+          ] + arch_list + def_list
+      run_process (cmd_args)
+
+      post_build (target, toolchain, fsp_pkg)
+
+  buildp = sp.add_parser('build', help='build FSP binary')
+  buildp.add_argument('-p',  '--platform', choices=['qemu'], required = True, help='Specify FSP platform name to build')
+  buildp.add_argument('-a',  '--arch', choices=['ia32', 'x64'], default='x64', help='Specify the ARCH for build. Default is to build x64.')
+  buildp.add_argument('-r',  '--release',     action='store_true', help='Release build')
+  buildp.add_argument('-d',  '--define', action='append', help='Specify macros to be passed into DSC build')
+  buildp.set_defaults(func=cmd_build)
+
+  def cmd_clean(args):
+    workspace = os.environ['WORKSPACE']
+    dirs  = ['Build', 'Conf']
+    files = [
+      os.path.join (workspace, 'Report.log')
+    ]
+
+    for dir in dirs:
+      dirpath = os.path.join (workspace, dir)
+      print ('Removing %s' % dirpath)
+      shutil.rmtree(dirpath, ignore_errors=True)
+
+    for file in files:
+      if os.path.exists(file):
+        print ('Removing %s' % file)
+        os.remove(file)
+
+    print('Clean Done !')
+
+  cleanp = sp.add_parser('clean', help='clean build dir')
+  cleanp.set_defaults(func=cmd_clean)
+
+  args = ap.parse_args()
+  if len(args.__dict__) <= 1:
+    # No arguments or subcommands were given.
+    ap.print_help()
+    ap.exit()
+
+  args.func(args)
 
 
 if __name__ == '__main__':
-    sys.exit(Main())
+  main()
+
