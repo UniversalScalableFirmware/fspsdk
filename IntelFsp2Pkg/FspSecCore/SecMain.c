@@ -53,7 +53,7 @@ SecStartup (
   IN UINT32                   SizeOfRam,
   IN UINT32                   TempRamBase,
   IN VOID                    *BootFirmwareVolume,
-  IN EFI_PEI_CORE_ENTRY_POINT PeiCore,
+  IN PEI_CORE_ENTRY           PeiCore,
   IN UINT32                   BootLoaderStack,
   IN UINT32                   ApiIdx
   )
@@ -119,7 +119,7 @@ SecStartup (
   if (IdtDescriptor.Base == 0) {
     ExceptionHandler = FspGetExceptionHandler(mIdtEntryTemplate);
     for (Index = 0; Index < FixedPcdGet8(PcdFspMaxInterruptSupported); Index ++) {
-      CopyMem ((VOID*)&IdtTableInStack.IdtTable[Index], (VOID*)&ExceptionHandler, sizeof (IA32_IDT_GATE_DESCRIPTOR));
+      CopyMem ((VOID*)&IdtTableInStack.IdtTable[Index], (VOID*)&ExceptionHandler, sizeof (UINT64));
     }
     IdtSize = sizeof (IdtTableInStack.IdtTable);
   } else {
@@ -128,10 +128,10 @@ SecStartup (
       //
       // ERROR: IDT table size from boot loader is larger than FSP can support, DeadLoop here!
       //
-      IdtSize = sizeof (IdtTableInStack.IdtTable);
+      CpuDeadLoop();
+    } else {
+      CopyMem ((VOID *) (UINTN) &IdtTableInStack.IdtTable, (VOID *) IdtDescriptor.Base, IdtSize);
     }
-
-    CopyMem ((VOID *) (UINTN) &IdtTableInStack.IdtTable, (VOID *) IdtDescriptor.Base, IdtSize);
   }
   IdtDescriptor.Base  = (UINTN) &IdtTableInStack.IdtTable;
   IdtDescriptor.Limit = (UINT16)(IdtSize - 1);
@@ -173,7 +173,6 @@ SecStartup (
   DEBUG ((DEBUG_INFO, "Fsp PeiTemporaryRamSize    - 0x%x\n", SecCoreData.PeiTemporaryRamSize));
   DEBUG ((DEBUG_INFO, "Fsp StackBase              - 0x%x\n", SecCoreData.StackBase));
   DEBUG ((DEBUG_INFO, "Fsp StackSize              - 0x%x\n", SecCoreData.StackSize));
-  DEBUG ((DEBUG_INFO, "SecData                    - 0x%x\n", (UINT32)(UINTN)(&SecCoreData)));
 
   //
   // Call PeiCore Entry

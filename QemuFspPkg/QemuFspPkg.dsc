@@ -13,21 +13,6 @@
 #
 ##
 
-[Defines]
-  #
-  # Set platform specific package/folder name, same as passed from PREBUILD script.
-  # PLATFORM_PACKAGE would be the same as PLATFORM_NAME as well as package build folder
-  # DEFINE only takes effect at R9 DSC and FDF.
-  #
-  DEFINE FSP_PACKAGE                     = QemuFspPkg
-  DEFINE FSP_IMAGE_ID                    = 0x245053464D455124  # $QEMFSP$
-  DEFINE FSP_IMAGE_REV                   = 0x00001000
-
-  DEFINE CAR_BASE_ADDRESS                = 0x00000000
-  DEFINE CAR_REGION_SIZE                 = 0x00080000
-  DEFINE CAR_BLD_REGION_SIZE             = 0x00070000
-  DEFINE CAR_FSP_REGION_SIZE             = 0x00010000
-
 ################################################################################
 #
 # Defines Section - statements that will be processed to create a Makefile.
@@ -53,6 +38,22 @@
   FSP_T_UPD_FFS_GUID             = 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA
   FSP_M_UPD_FFS_GUID             = D5B86AEA-6AF7-40D4-8014-982301BC3D89
   FSP_S_UPD_FFS_GUID             = E3CD9B18-998C-4F76-B65E-98B154E5446F
+
+  #
+  # Set platform specific package/folder name, same as passed from PREBUILD script.
+  # PLATFORM_PACKAGE would be the same as PLATFORM_NAME as well as package build folder
+  # DEFINE only takes effect at R9 DSC and FDF.
+  #
+  DEFINE FSP_PACKAGE                     = QemuFspPkg
+  DEFINE FSP_IMAGE_ID                    = 0x245053464D455124  # $QEMFSP$
+  DEFINE FSP_IMAGE_REV                   = 0x00001010
+
+  DEFINE CAR_BASE_ADDRESS                = 0x00000000
+  DEFINE CAR_REGION_SIZE                 = 0x00080000
+  DEFINE CAR_BLD_REGION_SIZE             = 0x00070000
+  DEFINE CAR_FSP_REGION_SIZE             = 0x00010000
+
+  DEFINE FSP_ARCH                        = X64
 
 ################################################################################
 #
@@ -367,13 +368,12 @@
 #       generated for it, but the binary will not be put into any firmware volume.
 #
 ###################################################################################################
-[Components]
+[Components.IA32]
   #
   # FSP Binary Components
   #
   $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
-[Components.IA32]
   #
   # SEC
   #
@@ -382,7 +382,7 @@
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecTLib.inf
   }
 
-[Components.X64]
+[Components.$(FSP_ARCH)]
   IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf {
     <LibraryClasses>
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecMLib.inf

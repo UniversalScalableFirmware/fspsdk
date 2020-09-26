@@ -26,6 +26,7 @@
 //   sub     esp, 8               +0x00
 //   sidt    fword ptr [esp]
 //
+#if defined (MDE_CPU_X64)
 typedef struct {
   UINT64   ApiParam[2];
   UINT64   ApiRet;
@@ -35,6 +36,27 @@ typedef struct {
   UINT64   Xmm[10*2];  //XMM6-XMM15
   UINT64   Idtr[2];
 } CONTEXT_STACK;
+#endif
+
+#if defined (MDE_CPU_IA32)
+typedef struct {
+  UINT16    IdtrLimit;
+  UINT32    IdtrBase;
+  UINT16    Reserved;
+  UINT32    Edi;
+  UINT32    Esi;
+  UINT32    Ebp;
+  UINT32    Esp;
+  UINT32    Ebx;
+  UINT32    Edx;
+  UINT32    Ecx;
+  UINT32    Reg[1]; //Eax;
+  UINT16    Flags[2];
+  UINT32    FspInfoHeader;
+  UINT32    ApiRet;
+  UINT32    ApiParam[2];
+} CONTEXT_STACK;
+#endif
 
 #define CONTEXT_STACK_OFFSET(x)  (UINT32)(UINTN)&((CONTEXT_STACK *)(UINTN)0)->x
 

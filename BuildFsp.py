@@ -363,12 +363,13 @@ def pre_build(target, toolchain, fsppkg):
     print('End of PreBuild...')
 
 
-def post_build (target, toolchain, fsppkg):
+def post_build (target, toolchain, fsppkg, fsparch):
 
     print ('Start of PostBuild ...')
 
     patchfv = 'IntelFsp2Pkg/Tools/PatchFv.py'
     fvdir   = 'Build/%s/%s_%s/FV' % (fsppkg, target, toolchain)
+    fsp_arch   = 4 if fsparch == 'x64' else 0
     build_type = 1 if target == 'RELEASE' else 0
     cmd1 = [
            "0x0000,            _BASE_FSP-T_,                                                                                       @Temporary Base",
@@ -388,7 +389,7 @@ def post_build (target, toolchain, fsppkg):
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-M Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-M Base",
          "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-M Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x2000 | 0x000%d | 0x0002 | 0x0004,                            @FSP-M Component Attribute"  % build_type,
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x2000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-M Component Attribute"  % (build_type, fsp_arch),
          "<[0x0000]>+0x00B8, D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x1C - <[0x0000]>,                                             @FSP-M CFG Offset",
          "<[0x0000]>+0x00BC, [D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-M CFG Size",
          "<[0x0000]>+0x00D0, FspSecCoreM:_FspMemoryInitApi - [0x0000],                                                           @MemoryInitApi API",
@@ -403,7 +404,7 @@ def post_build (target, toolchain, fsppkg):
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-S Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-S Base",
          "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-S Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x3000 | 0x000%d | 0x0002 | 0x0004,                            @FSP-S Component Attribute"  % build_type,
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x3000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-S Component Attribute"  % (build_type, fsp_arch),
          "<[0x0000]>+0x00B8, E3CD9B18-998C-4F76-B65E-98B154E5446F:0x1C - <[0x0000]>,                                             @FSP-S CFG Offset",
          "<[0x0000]>+0x00BC, [E3CD9B18-998C-4F76-B65E-98B154E5446F:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-S CFG Size",
          "<[0x0000]>+0x00D8, FspSecCoreS:_FspSiliconInitApi - [0x0000],                                                          @SiliconInit API",
@@ -467,10 +468,11 @@ def main():
           "-b",         target,
           "--tagname",  os.environ['TOOL_CHAIN'],
           "-n",         str(multiprocessing.cpu_count()),
+          "-D", "FSP_ARCH=%s" % args.arch.upper()
           ] + arch_list + def_list
       run_process (cmd_args)
 
-      post_build (target, toolchain, fsp_pkg)
+      post_build (target, toolchain, fsp_pkg, args.arch)
 
   buildp = sp.add_parser('build', help='build FSP binary')
   buildp.add_argument('-p',  '--platform', choices=['qemu'], required = True, help='Specify FSP platform name to build')

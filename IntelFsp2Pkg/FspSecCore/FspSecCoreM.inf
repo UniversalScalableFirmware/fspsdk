@@ -34,7 +34,6 @@
   X64/ReadEsp.nasm
 
 [Sources.IA32]
-  Ia32/Stack.nasm
   Ia32/FspApiEntryM.nasm
   Ia32/FspApiEntryCommon.nasm
   Ia32/FspHelper.nasm

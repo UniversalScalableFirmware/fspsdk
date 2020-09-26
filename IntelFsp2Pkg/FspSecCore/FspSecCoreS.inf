@@ -25,13 +25,11 @@
   SecFsp.h
 
 [Sources.X64]
-  #X64/Stack.nasm
   X64/FspApiEntryS.nasm
   X64/FspApiEntryCommon.nasm
   X64/FspHelper.nasm
 
 [Sources.IA32]
-  Ia32/Stack.nasm
   Ia32/FspApiEntryS.nasm
   Ia32/FspApiEntryCommon.nasm
   Ia32/FspHelper.nasm

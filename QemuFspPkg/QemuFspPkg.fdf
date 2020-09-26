@@ -153,15 +153,15 @@ FILE RAW = $(FSP_M_UPD_FFS_GUID) {
 # It is important to keep the proper order for these PEIMs
 # for this implementation
 #
-INF RuleOverride = RELOC  IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf
+INF RuleOverride = RELOC  USE = $(FSP_ARCH) IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf
 
-INF USE = X64 MdeModulePkg/Core/Pei/PeiMain.inf
-INF USE = X64 MdeModulePkg/Universal/PCD/Pei/Pcd.inf
+INF USE = $(FSP_ARCH) MdeModulePkg/Core/Pei/PeiMain.inf
+INF USE = $(FSP_ARCH) MdeModulePkg/Universal/PCD/Pei/Pcd.inf
 
 #
 # Project specific PEIMs
 #
-INF USE = X64 $(FSP_PACKAGE)/FspmInit/FspmInit.inf
+INF USE = $(FSP_ARCH) $(FSP_PACKAGE)/FspmInit/FspmInit.inf
 
 #
 # Description file
@@ -207,11 +207,11 @@ FILE RAW = $(FSP_S_UPD_FFS_GUID) {
 # It is important to keep the proper order for these PEIMs
 # for this implementation
 #
-INF RuleOverride = RELOC  USE = X64  IntelFsp2Pkg/FspSecCore/FspSecCoreS.inf
-INF                       USE = X64 MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
-INF RuleOverride = PE32   USE = X64   $(FSP_PACKAGE)/FspsInit/FspsInit.inf
-INF RuleOverride = PE32   USE = X64   $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
-INF RuleOverride = PE32   USE = X64   IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
+INF RuleOverride = RELOC  USE = $(FSP_ARCH)  IntelFsp2Pkg/FspSecCore/FspSecCoreS.inf
+INF                       USE = $(FSP_ARCH)  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/FspsInit/FspsInit.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
 
 
 [Rule.Common.SEC]
