@@ -182,7 +182,7 @@
   # !BSF PAGES:{MEM:"FSP MemoryInit Settings", SIL:"FSP SiliconInit Settings"}
   # !BSF BLOCK:{NAME:"Apollo Lake Platform", VER:"0.1"}
 
-  # !BSF FIND:{APLUPD_T}
+  # !BSF FIND:{QEMUPD_T}
   # !HDR COMMENT:{FSP_UPD_HEADR:FSP UPD Header}
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
   # FsptUpdSignature: {QEMUPD_T}
@@ -228,10 +228,10 @@
   # UPDs consumed in FspMemoryInit Api
   #
   ################################################################################
-  # !BSF FIND:{APLUPD_M}
+  # !BSF FIND:{QEMUPD_M}
   # !HDR COMMENT:{FSP_UPD_HEADER:FSP UPD Header}
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
-  # FspmUpdSignature: {APLUPD_M}
+  # FspmUpdSignature: {QEMUPD_M}
   gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x4D5F4450554D4551
   # !BSF NAME:{FspmUpdRevision}
   gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
@@ -308,10 +308,10 @@
   # UPDs consumed in FspSiliconInit Api
   #
   ################################################################################
-  # !BSF FIND:{APLUPD_S}
+  # !BSF FIND:{QEMUPD_S}
   # !HDR COMMENT:{FSP_UPD_HEADER:FSP UPD Header}
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
-  # FspsUpdSignature: {APLUPD_S}
+  # FspsUpdSignature: {QEMUPD_S}
   gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x535F4450554D4551
   # !BSF NAME:{FspsUpdRevision}
   gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
