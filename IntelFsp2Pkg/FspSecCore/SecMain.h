@@ -105,7 +105,7 @@ SecStartup (
   IN UINT32                   SizeOfRam,
   IN UINT32                   TempRamBase,
   IN VOID                    *BootFirmwareVolume,
-  IN EFI_PEI_CORE_ENTRY_POINT PeiCore,
+  IN PEI_CORE_ENTRY           PeiCore,
   IN UINT32                   BootLoaderStack,
   IN UINT32                   ApiIdx
   );
