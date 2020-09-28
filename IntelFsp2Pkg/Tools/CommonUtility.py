@@ -16,9 +16,7 @@ import re
 import shutil
 import subprocess
 import struct
-import hashlib
 import string
-from   functools import reduce
 from   ctypes import *
 
 def print_bytes (data, indent=0, offset=0, show_ascii = False):
@@ -92,17 +90,6 @@ def check_files_exist (base_name_list, dir = '', ext = ''):
         if not os.path.exists (os.path.join (dir, each + ext)):
             return False
     return True
-
-def get_openssl_path ():
-    if os.name == 'nt':
-        if 'OPENSSL_PATH' not in os.environ:
-            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\"
-        if 'OPENSSL_CONF' not in os.environ:
-            openssl_cfg = "C:\\Openssl\\openssl.cfg"
-            if os.path.exists(openssl_cfg):
-                os.environ['OPENSSL_CONF'] = openssl_cfg
-    openssl = os.path.join(os.environ.get ('OPENSSL_PATH', ''), 'openssl')
-    return openssl
 
 def run_process (arg_list, print_cmd = False, capture_out = False):
     sys.stdout.flush()

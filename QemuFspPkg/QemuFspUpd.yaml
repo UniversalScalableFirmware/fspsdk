@@ -9,19 +9,12 @@
 
 
 variable:
-  FSP_PACKAGE                    : QemuFspPkg
-  FSP_IMAGE_ID                   : 0x245053464D455124  # $QEMFSP$
-  FSP_IMAGE_REV                  : 0x00001000
-  CAR_BASE_ADDRESS               : 0x00000000
-  CAR_REGION_SIZE                : 0x00080000
-  CAR_BLD_REGION_SIZE            : 0x00070000
-  CAR_FSP_REGION_SIZE            : 0x00010000
   PLATFORM_NAME                  : QemuFspPkg
   PLATFORM_GUID                  : 1BEDB57A-7904-406e-8486-C89FC7FB39EE
   PLATFORM_VERSION               : 0.1
   DSC_SPECIFICATION              : 0x00010005
   OUTPUT_DIRECTORY               : Build/QemuFspPkg
-  SUPPORTED_ARCHITECTURES        : IA32
+  SUPPORTED_ARCHITECTURES        : IA32|X64
   BUILD_TARGETS                  : DEBUG|RELEASE
   SKUID_IDENTIFIER               : DEFAULT
   FLASH_DEFINITION               : QemuFspPkg/QemuFspPkg.fdf
@@ -31,6 +24,14 @@ variable:
   FSP_T_UPD_FFS_GUID             : 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA
   FSP_M_UPD_FFS_GUID             : D5B86AEA-6AF7-40D4-8014-982301BC3D89
   FSP_S_UPD_FFS_GUID             : E3CD9B18-998C-4F76-B65E-98B154E5446F
+  FSP_PACKAGE                    : QemuFspPkg
+  FSP_IMAGE_ID                   : 0x245053464D455124  # $QEMFSP$
+  FSP_IMAGE_REV                  : 0x00001010
+  CAR_BASE_ADDRESS               : 0x00000000
+  CAR_REGION_SIZE                : 0x00080000
+  CAR_BLD_REGION_SIZE            : 0x00070000
+  CAR_FSP_REGION_SIZE            : 0x00010000
+  FSP_ARCH                       : X64
 
 
 template:
@@ -39,22 +40,20 @@ template:
 configs:
   - $ACTION      :
       page         : MEM::"FSP MemoryInit Settings", SIL::"FSP SiliconInit Settings"
-
-  - FSPT_UPD:
-
+  - $ACTION      :
+      find         : QEMUPD_T
+  - FSPT_UPD     :
     - FSP_UPD_HEADER :
       - Signature    :
           length       : 0x08
           value        : 0x545F4450554D4551
       - Revision     :
           name         : FsptUpdRevision
-          type         : None
           length       : 0x01
           value        : 0x01
       - Reserved     :
           length       : 0x17
           value        : {0x00}
-
     - FSPT_COMMON_UPD :
       - Revision     :
           length       : 0x01
@@ -77,32 +76,31 @@ configs:
       - Reserved1    :
           length       : 0x0C
           value        : {0x00}
-
     - FSP_T_CONFIG :
       - ReservedFsptUpd1 :
           length       : 0x20
           value        : {0x00}
-      - UnusedUpdSpace0 :
-          length       : 0x30
-          value        : { 0 }
-      - UpdTerminator :
-          length       : 0x02
-          value        : 0x55AA
+    - UnusedUpdSpace0 :
+        length       : 0x30
+        value        : { 0 }
+    - UpdTerminator :
+        length       : 0x02
+        value        : 0x55AA
+    - $ACTION      :
+        find         : QEMUPD_M
 
-  - FSPM_UPD:
+  - FSPM_UPD     :
     - FSP_UPD_HEADER :
       - Signature    :
           length       : 0x08
           value        : 0x4D5F4450554D4551
       - Revision     :
           name         : FspmUpdRevision
-          type         : None
           length       : 0x01
           value        : 0x01
       - Reserved     :
           length       : 0x17
           value        : {0x00}
-
     - FSPM_ARCH_UPD :
       - $ACTION      :
           page         : MEM
@@ -144,7 +142,6 @@ configs:
       - Reserved1    :
           length       : 0x08
           value        : {0x00}
-
     - FSP_M_CONFIG :
       - SerialDebugPortAddress :
           name         : Debug Serial Port Base address
@@ -179,34 +176,33 @@ configs:
                          Debug serial port register map stride size in bytes. 0x00:1, 0x02:4(Default).
           length       : 0x01
           value        : 0x02
+    - ReservedFspmUpd :
+        length       : 0x04
+        value        : {0x00}
+    - UnusedUpdSpace1 :
+        length       : 0x31
+        value        : { 0 }
+    - UnusedUpdSpace2 :
+        length       : 0x2
+        value        : { 0 }
+    - UpdTerminator :
+        length       : 0x02
+        value        : 0x55AA
+    - $ACTION      :
+        find         : QEMUPD_S
 
-      - UnusedUpdSpace1 :
-          length       : 0x31
-          value        : { 0 }
-      - ReservedFspmUpd :
-          length       : 0x04
-          value        : {0x00}
-      - UnusedUpdSpace2 :
-          length       : 0x2
-          value        : { 0 }
-      - UpdTerminator :
-          length       : 0x02
-          value        : 0x55AA
-
-  - FSPS_UPD:
+  - FSPS_UPD     :
     - FSP_UPD_HEADER :
       - Signature    :
           length       : 0x08
           value        : 0x535F4450554D4551
       - Revision     :
           name         : FspsUpdRevision
-          type         : None
           length       : 0x01
           value        : 0x01
       - Reserved     :
           length       : 0x17
           value        : {0x00}
-
     - FSP_S_CONFIG :
       - $ACTION      :
           page         : SIL
@@ -235,21 +231,22 @@ configs:
           length       : 0x04
           value        : 0x00000000
       - PciTempResourceBase :
-          name         : PCI Temporary MMIO Base
-          type         : Reserved
+          name         : PCI GFX Temporary MMIO Base
+          type         : EditNum, HEX, (0x80000000,0xDFFFFFFF)
           help         : >
-                         PCI Temporary MMIO Base used before full PCI enumeration. 0x80000000(Default).
+                         PCI Temporary PCI GFX Base used before full PCI enumeration. 0x80000000(Default).
           length       : 0x04
           value        : 0x80000000
-      - UnusedUpdSpace4 :
-          length       : 0x20
-          value        : { 0 }
-      - ReservedFspsUpd :
-          length       : 0x01
-          value        : 0x00
-      - UnusedUpdSpace5 :
-          length       : 0xd
-          value        : { 0 }
-      - UpdTerminator :
-          length       : 0x02
-          value        : 0x55AA
+    - ReservedFspsUpd :
+        length       : 0x01
+        value        : 0x00
+    - UnusedUpdSpace4 :
+        length       : 0x20
+        value        : { 0 }
+    - UnusedUpdSpace5 :
+        length       : 0xd
+        value        : { 0 }
+    - UpdTerminator :
+        length       : 0x02
+        value        : 0x55AA
+
