@@ -504,7 +504,7 @@ def main():
   cleanp.set_defaults(func=cmd_clean)
 
   args = ap.parse_args()
-  if len(args.__dict__) <= 1:
+  if len(args.__dict__) < 1:
     # No arguments or subcommands were given.
     ap.print_help()
     ap.exit()

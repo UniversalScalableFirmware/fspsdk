@@ -6,3 +6,5 @@ __pycache__/
 tags/
 .vscode/
 BuildFsp/
+/Conf
+/QemuFspPkg/Include/Fsp*Upd.h
