@@ -1489,10 +1489,11 @@ class CGenCfgData:
             if path == 'PLATFORMID_CFG_DATA.PlatformId':
                 platform_id = value_str
 
-        if platform_id is None:
-            raise Exception(
-                "PLATFORMID_CFG_DATA.PlatformId is missing in file '%s' !" %
-                (dlt_file))
+        if self.get_mode() != 'FSP':
+            if platform_id is None:
+                raise Exception(
+                    "PLATFORMID_CFG_DATA.PlatformId is missing in file '%s' !" %
+                    (dlt_file))
 
         return error
 
@@ -2128,10 +2129,10 @@ def main():
             fo.close ()
             return 0
 
+    gen_cfg_data.detect_fsp ()
+
     if dlt_file:
         gen_cfg_data.override_default_value(dlt_file)
-
-    gen_cfg_data.detect_fsp ()
 
     if   command == "GENBIN":
         if len(file_list) == 3:
