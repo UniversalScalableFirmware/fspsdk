@@ -24,6 +24,7 @@
 #include <Library/PcdLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/FspCommonLib.h>
+#include <FspUpd.h>
 #include <FspmUpd.h>
 #include <FspsUpd.h>
 

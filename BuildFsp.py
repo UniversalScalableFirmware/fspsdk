@@ -308,7 +308,12 @@ def fatal(msg):
 def pre_build(target, toolchain, fsppkg):
 
     workspace = os.environ['WORKSPACE']
-    pkgname   = '%sFspPkg' % fsppkg
+    pkgname = fsppkg
+    fspbase = fsppkg[:-3]
+    updname = fspbase + 'Upd'
+    fvdir = 'Build/%s/%s_%s/FV' % (pkgname, target, toolchain)
+    if not os.path.exists (fvdir):
+        os.makedirs(fvdir)
 
     FspGuid = {
         'FspTUpdGuid'       : '34686CA3-34F9-4901-B82A-BA630F0714C6',
@@ -317,49 +322,39 @@ def pre_build(target, toolchain, fsppkg):
     }
 
     # !!!!!!!! Update VPD/UPD Information !!!!!!!!
-    print('Preparing VPD/UPD Information...')
+    print('Preparing UPD Information...')
 
-    pkgname = 'QemuFspPkg'
-
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py UPDTXT %s/%s.dsc Build/%s/%s_%s/FV' % (
-           workspace, pkgname, pkgname, pkgname, target, toolchain)
+    # Generate combined YAML file
+    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENYML %s/%s.yaml Build/%s/%s_%s/FV/%s.yaml' % (
+           workspace, pkgname, updname, pkgname, target, toolchain, fspbase)
     ret = subprocess.call(cmd.split(' '))
-    if not (ret == 0 or ret == 256):
-        fatal('Failed to generate UPD txt file !')
+    if not (ret == 0):
+        fatal('Failed to generate combined YAML file !')
 
-    print('UPD TXT file was generated successfully !')
+    print('Generate UPD Bianry File ...')
+    for fsp_comp in 'TMS':
+        cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENBIN %s/%s.yaml@FSP%s_UPD Build/%s/%s_%s/FV/%s.bin' % (
+               workspace, pkgname, updname, fsp_comp, pkgname, target, toolchain, FspGuid['Fsp%sUpdGuid' % fsp_comp])
+        ret = subprocess.call(cmd.split(' '))
+        if not (ret == 0):
+            fatal('Failed to generate UPD binary file !')
 
     print('Generate UPD Header File ...')
-    bdpgpath = 'BPDG' if os.name == 'posix' else 'BPDG.bat'
-
-    fvdir = 'Build/%s/%s_%s/FV' % (pkgname, target, toolchain)
-    for fspcomp in FspGuid:
-        fspguid = FspGuid[fspcomp]
-        cmd = '%s %s/%s.txt' % (bdpgpath, fvdir, fspguid)
-        cmd = cmd + ' -o %s/%s.bin' % (fvdir, fspguid)
-        cmd = cmd + ' -m %s/%s.map' % (fvdir, fspguid)
-        filepath = '%s/%s/%s.bin' % (workspace, fvdir, fspguid)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    for fsp_comp in 'TMS ':
+        if fsp_comp == ' ':
+            fsp_comp = ''
+            scope = 'FSP_SIG'
+        else:
+            scope = 'FSP%s_UPD' % fsp_comp
+        fliename = 'Fsp%sUpd.h' % fsp_comp.lower()
+        cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENHDR %s/%s.yaml@%s %s/%s' % (
+               workspace, pkgname, updname, scope, fvdir, fliename)
         ret = subprocess.call(cmd.split(' '))
-        if ret:
-            fatal('Failed to generate UPD bin file !')
+        if not (ret == 0):
+            fatal('Failed to generate UPD header file !')
 
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        fatal('Failed to generate UPD header file !')
-
-    print('Generate BSF File ...')
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        fatal('Failed to generate UPD BSF file !')
-
-    for fliename in ['FspUpd.h', 'FsptUpd.h', 'FspmUpd.h', 'FspsUpd.h']:
         shutil.copyfile('%s/%s' % (fvdir, fliename), '%s/Include/%s'%(pkgname, fliename))
+
     print('End of PreBuild...')
 
 
@@ -423,7 +418,7 @@ def post_build (target, toolchain, fsppkg, fsparch):
 
     copy_list = [
         ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
-        ('QemuFsp.bsf', 'QEMU_FSP.bsf'),
+        ('QemuFsp.yaml', 'QEMU_FSP.yaml'),
         ('FspUpd.h',    'FspUpd.h'),
         ('FsptUpd.h',   'FsptUpd.h'),
         ('FspmUpd.h',   'FspmUpd.h'),
