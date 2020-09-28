@@ -187,7 +187,7 @@
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
   # FsptUpdSignature: {QEMUPD_T}
   gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x545F4450554D4551
-  # !BSF NAME:{FsptUpdRevision}  TYPE:{None}
+  # !BSF NAME:{FsptUpdRevision}
   gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
   gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
@@ -233,7 +233,7 @@
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
   # FspmUpdSignature: {APLUPD_M}
   gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x4D5F4450554D4551
-  # !BSF NAME:{FspmUpdRevision}  TYPE:{None}
+  # !BSF NAME:{FspmUpdRevision}
   gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
   gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
@@ -313,7 +313,7 @@
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
   # FspsUpdSignature: {APLUPD_S}
   gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x535F4450554D4551
-  # !BSF NAME:{FspsUpdRevision}  TYPE:{None}
+  # !BSF NAME:{FspsUpdRevision}
   gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
   # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
   gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
@@ -337,9 +337,9 @@
   # !BSF HELP:{Graphics configuration data used for initialization. 0x00000000(Default).}
   gQemuFspPkgTokenSpaceGuid.GraphicsConfigPtr           | 0x0048 | 0x04 | 0x00000000
 
-  # !BSF NAME:{PCI Temporary MMIO Base}
-  # !BSF TYPE:{Reserved}
-  # !BSF HELP:{PCI Temporary MMIO Base used before full PCI enumeration. 0x80000000(Default).}
+  # !BSF NAME:{PCI GFX Temporary MMIO Base}
+  # !BSF TYPE:TYPE:{EditNum, HEX, (0x80000000,0xDFFFFFFF)}
+  # !BSF HELP:{PCI Temporary PCI GFX Base used before full PCI enumeration. 0x80000000(Default).}
   gQemuFspPkgTokenSpaceGuid.PciTempResourceBase         | 0x004C | 0x04 | 0x80000000
 
   # !HDR EMBED:{FSP_S_CONFIG:FspsConfig:END}
