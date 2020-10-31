@@ -355,6 +355,11 @@ def pre_build(target, toolchain, fsppkg):
 
         shutil.copyfile('%s/%s' % (fvdir, fliename), '%s/Include/%s'%(pkgname, fliename))
 
+    # rebuild reset vector
+    vtf_dir = os.path.join('QemuFspPkg', 'FsprInit', 'Ia32', 'Vtf0')
+    x = subprocess.call([sys.executable, 'Build.py', 'ia32'],  cwd=vtf_dir)
+    if x: raise Exception ('Failed to build reset vector !')
+
     print('End of PreBuild...')
 
 
@@ -408,7 +413,19 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "FspSecCoreS:_FspInfoHeaderRelativeOff, FspSecCoreS:_AsmGetFspInfoHeader - {912740BE-2284-4734-B971-84B027353F0C:0x1C}, @FSP-S Header Offset"
          ]
 
-    for fspt, cmd in [('T', cmd1), ('M', cmd2), ('S',cmd3)]:
+    cmd4 = [
+         "0x0000,            _BASE_FSP-R_,                                                                                       @Temporary Base",
+         "0xFFFFFFFC,        FsprInit:__ModuleEntryPoint,        @Patch FSP-R Entry",
+         "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-R Size",
+         "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-R Base",
+         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-R Image Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x4000 | 0x000%d | 0x000%d | 0x0002,                           @FSP-R Component Attribute"  % (build_type, fsp_arch),
+         "<[0x0000]>+0x00B8, 0,                                                                                                  @FSP-R CFG Offset",
+         "<[0x0000]>+0x00BC, 0,                                                                                                  @FSP-R CFG Size",
+         "0x0000,            0x00000000,                                                                                         @Restore the value"
+         ]
+
+    for fspt, cmd in [('T', cmd1), ('M', cmd2), ('S',cmd3), ('R',cmd4)]:
         print ('Patch FSP-%s Image ...' % fspt)
         line = ['python', patchfv, fvdir, 'FSP-%s:QEMUFSP' % fspt]
         line.extend(cmd)

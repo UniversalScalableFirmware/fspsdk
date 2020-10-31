@@ -14,14 +14,14 @@
 ##
 
 [Defines]
-DEFINE FLASH_BASE           = 0xFFFC8000
-DEFINE FLASH_BLOCK_SIZE     = 0x00000100
+DEFINE FLASH_BASE           = 0xFFFC0000
+DEFINE FLASH_BLOCK_SIZE     = 0x00001000
 
 #
 # Flash Size for Visual Studio and GCC
 #
-DEFINE FLASH_SIZE           = 0x00038000
-DEFINE FLASH_NUM_BLOCKS     = 0x380          #The number of blocks
+DEFINE FLASH_SIZE           = 0x40000
+DEFINE FLASH_NUM_BLOCKS     = 0x40
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase  = 0x00000000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x00015000
@@ -31,6 +31,9 @@ SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00022000
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x00037000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00001000
+
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprBase  = 0x00038000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprSize  = 0x00008000
 
 ################################################################################
 #
@@ -73,6 +76,10 @@ FV = FSP-M
 gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase|gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize
 FV = FSP-T
 
+#FSP-R
+gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprBase|gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprSize
+FV = FSP-R
+
 ################################################################################
 #
 # FV Section
@@ -83,6 +90,36 @@ FV = FSP-T
 # module statements.
 #
 ################################################################################
+[FV.FSP-R]
+BlockSize          = $(FLASH_BLOCK_SIZE)
+FvAlignment        = 16
+ERASE_POLARITY     = 1
+MEMORY_MAPPED      = TRUE
+STICKY_WRITE       = TRUE
+LOCK_CAP           = TRUE
+LOCK_STATUS        = TRUE
+WRITE_DISABLED_CAP = TRUE
+WRITE_ENABLED_CAP  = TRUE
+WRITE_STATUS       = TRUE
+WRITE_LOCK_CAP     = TRUE
+WRITE_LOCK_STATUS  = TRUE
+READ_DISABLED_CAP  = TRUE
+READ_ENABLED_CAP   = TRUE
+READ_STATUS        = TRUE
+READ_LOCK_CAP      = TRUE
+READ_LOCK_STATUS   = TRUE
+FvNameGuid         = A1C4AB97-EE26-482E-BA6B-50E7EE711D12
+
+#
+# FSP header
+#
+INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
+
+INF QemuFspPkg/FsprInit/FsprInit.inf
+
+INF RuleOverride = RESET_VECTOR USE = IA32 QemuFspPkg/FsprInit/Ia32/Vtf0/Bin/ResetVector.inf
+
+
 [FV.FSP-T]
 BlockSize          = $(FLASH_BLOCK_SIZE)
 FvAlignment        = 16
@@ -268,4 +305,9 @@ INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNoti
 [Rule.Common.USER_DEFINED.FSPHEADER]
   FILE RAW = $(NAMED_GUID)               {
      RAW BIN                  |.acpi
+  }
+
+[Rule.Common.SEC.RESET_VECTOR]
+  FILE RAW = $(NAMED_GUID) {
+    RAW RAW                |.raw
   }

@@ -38,6 +38,8 @@
   gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize            | 0x00000000           | UINT32  | 0x00000008
   gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase            | 0x00000000           | UINT32  | 0x00000009
   gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize            | 0x00000000           | UINT32  | 0x0000000A
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprBase            | 0x00000000           | UINT32  | 0x0000000B
+  gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsprSize            | 0x00000000           | UINT32  | 0x0000000C
   gQemuFspPkgTokenSpaceGuid.PcdFspHeaderRevision          | 0x02                 | UINT8   | 0x00000011
   gQemuFspPkgTokenSpaceGuid.PcdFspImageRevision           | 0x00000000           | UINT32  | 0x00000012
   gQemuFspPkgTokenSpaceGuid.PcdFspImageIdString           | 0x245053464D455124   | UINT64  | 0x00000013 #$QEMFSP$

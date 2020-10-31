@@ -470,7 +470,7 @@ class FspImage:
         self.FihOffset = fihoff
         self.Offset    = offset
         self.FvIdxList = []
-        self.Type      = "XTMSXXXXOXXXXXXX"[(fih.ComponentAttribute >> 12) & 0x0F]
+        self.Type      = "XTMSRXXXOXXXXXXX"[(fih.ComponentAttribute >> 12) & 0x0F]
         self.PatchList = patch
         self.PatchList.append(fihoff + 0x1C)
 
