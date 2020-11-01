@@ -18,12 +18,10 @@ variable:
   BUILD_TARGETS                  : DEBUG|RELEASE
   SKUID_IDENTIFIER               : DEFAULT
   FLASH_DEFINITION               : QemuFspPkg/QemuFspPkg.fdf
-  FSP_T_UPD_TOOL_GUID            : 34686CA3-34F9-4901-B82A-BA630F0714C6
-  FSP_M_UPD_TOOL_GUID            : 39A250DB-E465-4DD1-A2AC-E2BD3C0E2385
-  FSP_S_UPD_TOOL_GUID            : CAE3605B-5B34-4C85-B3D7-27D54273C40F
   FSP_T_UPD_FFS_GUID             : 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA
   FSP_M_UPD_FFS_GUID             : D5B86AEA-6AF7-40D4-8014-982301BC3D89
   FSP_S_UPD_FFS_GUID             : E3CD9B18-998C-4F76-B65E-98B154E5446F
+  FSP_R_UPD_FFS_GUID             : 658FF4B0-DD33-4295-AC27-13E5A268D991
   FSP_PACKAGE                    : QemuFspPkg
   FSP_IMAGE_ID                   : 0x245053464D455124  # $QEMFSP$
   FSP_IMAGE_REV                  : 0x00001010
@@ -39,7 +37,36 @@ template:
 
 configs:
   - $ACTION      :
-      page         : MEM::"FSP MemoryInit Settings", SIL::"FSP SiliconInit Settings"
+      page         : MEM::"FSP MemoryInit Settings", SIL::"FSP SiliconInit Settings", PLT::"FSP Platform Settings"
+
+  - $ACTION      :
+      find         : QEMUPD_R
+  - FSPR_UPD     :
+    - $ACTION      :
+          page         : PLT
+    - FSP_UPD_HEADER :
+      - Signature    :
+          length       : 0x08
+          value        : 0x525F4450554D4551
+      - Revision     :
+          name         : FsptUpdRevision
+          length       : 0x01
+          value        : 0x01
+      - Reserved     :
+          length       : 0x17
+          value        : {0x00}
+    - FSP_R_CONFIG :
+      - Test         :
+          name         : Test UPD
+          type         : EditNum, HEX, (0x00000000,0xFFFFFFFF)
+          help         : >
+                         Test UPD for FSP-R.
+          length       : 0x04
+          value        : 0x11223344
+    - UpdTerminator :
+        length       : 0x02
+        value        : 0x55AA
+
   - $ACTION      :
       find         : QEMUPD_T
   - FSPT_UPD     :

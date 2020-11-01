@@ -315,12 +315,6 @@ def pre_build(target, toolchain, fsppkg):
     if not os.path.exists (fvdir):
         os.makedirs(fvdir)
 
-    FspGuid = {
-        'FspTUpdGuid'       : '34686CA3-34F9-4901-B82A-BA630F0714C6',
-        'FspMUpdGuid'       : '39A250DB-E465-4DD1-A2AC-E2BD3C0E2385',
-        'FspSUpdGuid'       : 'CAE3605B-5B34-4C85-B3D7-27D54273C40F'
-    }
-
     # !!!!!!!! Update VPD/UPD Information !!!!!!!!
     print('Preparing UPD Information...')
 
@@ -332,15 +326,15 @@ def pre_build(target, toolchain, fsppkg):
         fatal('Failed to generate combined YAML file !')
 
     print('Generate UPD Bianry File ...')
-    for fsp_comp in 'TMS':
+    for fsp_comp in 'TMSR':
         cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENBIN %s/%s.yaml@FSP%s_UPD Build/%s/%s_%s/FV/%s.bin' % (
-               workspace, pkgname, updname, fsp_comp, pkgname, target, toolchain, FspGuid['Fsp%sUpdGuid' % fsp_comp])
+               workspace, pkgname, updname, fsp_comp, pkgname, target, toolchain, 'Fsp%sUpd' % fsp_comp.lower())
         ret = subprocess.call(cmd.split(' '))
         if not (ret == 0):
             fatal('Failed to generate UPD binary file !')
 
     print('Generate UPD Header File ...')
-    for fsp_comp in 'TMS ':
+    for fsp_comp in 'TMSR ':
         if fsp_comp == ' ':
             fsp_comp = ''
             scope = 'FSP_SIG'
@@ -420,8 +414,8 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-R Base",
          "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-R Image Attribute",
          "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x4000 | 0x000%d | 0x000%d | 0x0002,                           @FSP-R Component Attribute"  % (build_type, fsp_arch),
-         "<[0x0000]>+0x00B8, 0,                                                                                                  @FSP-R CFG Offset",
-         "<[0x0000]>+0x00BC, 0,                                                                                                  @FSP-R CFG Size",
+         "<[0x0000]>+0x00B8, 658FF4B0-DD33-4295-AC27-13E5A268D991:0x1C - <[0x0000]>,                                             @FSP-R CFG Offset",
+         "<[0x0000]>+0x00BC, [658FF4B0-DD33-4295-AC27-13E5A268D991:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-R CFG Size",
          "0x0000,            0x00000000,                                                                                         @Restore the value"
          ]
 
@@ -437,6 +431,7 @@ def post_build (target, toolchain, fsppkg, fsparch):
         ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
         ('QemuFsp.yaml', 'QEMU_FSP.yaml'),
         ('FspUpd.h',    'FspUpd.h'),
+        ('FsprUpd.h',   'FsprUpd.h'),
         ('FsptUpd.h',   'FsptUpd.h'),
         ('FspmUpd.h',   'FspmUpd.h'),
         ('FspsUpd.h',   'FspsUpd.h'),

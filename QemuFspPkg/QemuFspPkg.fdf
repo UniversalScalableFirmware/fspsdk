@@ -117,6 +117,10 @@ INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
 INF QemuFspPkg/FsprInit/FsprInit.inf
 
+FILE RAW = $(FSP_R_UPD_FFS_GUID) {
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FsprUpd.bin
+}
+
 INF RuleOverride = RESET_VECTOR USE = IA32 QemuFspPkg/FsprInit/Ia32/Vtf0/Bin/ResetVector.inf
 
 
@@ -149,7 +153,7 @@ INF  RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_T_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_T_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FsptUpd.bin
 }
 
 INF RuleOverride = RELOC  USE = IA32 IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
@@ -183,7 +187,7 @@ INF  RuleOverride = FSPHEADER  USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_M_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_M_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FspmUpd.bin
 }
 
 #
@@ -237,7 +241,7 @@ INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_S_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_S_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FspsUpd.bin
 }
 
 #
