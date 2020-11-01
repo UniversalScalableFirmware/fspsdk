@@ -17,7 +17,7 @@
 #include <FsptUpd.h>
 #include <FspmUpd.h>
 #include <FspsUpd.h>
-
+#include <FsprUpd.h>
 
 #define  ALIGN_UP(address, align)     (((address) + ((align) - 1)) & ~((align)-1))
 #define  ALIGN_DOWN(address, align)   ((address) & ~((align)-1))
@@ -158,6 +158,18 @@ GetFspReservedMemoryFromGuid (
   CONST VOID     *HobListPtr,
   UINT64         *Length,
   EFI_GUID       *OwnerGuid
+  );
+
+/**
+  This interface gets FspInfoHeader pointer
+
+  @return   FSP binary base address.
+
+**/
+UINTN
+EFIAPI
+AsmGetFspInfoHeader (
+  VOID
   );
 
 #endif

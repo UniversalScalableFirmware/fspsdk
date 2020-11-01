@@ -43,7 +43,7 @@ configs:
       find         : QEMUPD_R
   - FSPR_UPD     :
     - $ACTION      :
-          page         : PLT
+        page         : PLT
     - FSP_UPD_HEADER :
       - Signature    :
           length       : 0x08
@@ -63,6 +63,13 @@ configs:
                          Test UPD for FSP-R.
           length       : 0x04
           value        : 0x11223344
+      - OemEntryPoint  :
+          name         : Oem Entry Point
+          type         : EditNum, HEX, (0x00000000,0xFFFFFFFF)
+          help         : >
+                         Entry Point for OEM binary.
+          length       : 0x04
+          value        : 0
     - UpdTerminator :
         length       : 0x02
         value        : 0x55AA
@@ -113,9 +120,9 @@ configs:
     - UpdTerminator :
         length       : 0x02
         value        : 0x55AA
-    - $ACTION      :
-        find         : QEMUPD_M
 
+  - $ACTION      :
+      find         : QEMUPD_M
   - FSPM_UPD     :
     - FSP_UPD_HEADER :
       - Signature    :
@@ -215,9 +222,9 @@ configs:
     - UpdTerminator :
         length       : 0x02
         value        : 0x55AA
-    - $ACTION      :
-        find         : QEMUPD_S
 
+  - $ACTION      :
+      find         : QEMUPD_S
   - FSPS_UPD     :
     - FSP_UPD_HEADER :
       - Signature    :

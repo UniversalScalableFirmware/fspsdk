@@ -46,6 +46,8 @@
   gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase
   gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase
   gIntelFsp2PkgTokenSpaceGuid.PcdFspAreaBaseAddress
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamBase
+  gIntelFsp2PkgTokenSpaceGuid.PcdTemporaryRamSize
 
 [Depex]
   TRUE

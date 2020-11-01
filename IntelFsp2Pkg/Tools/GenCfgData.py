@@ -96,6 +96,12 @@ def read_lines (file):
     fi.close ()
     return lines
 
+def get_file_data (file, mode = 'rb'):
+    return open(file, mode).read()
+
+def gen_file_from_object (file, object):
+    open (file, 'wb').write(object)
+
 def expand_file_value (path, value_str):
     result = bytearray()
     match  = re.match("\{\s*FILE:(.+)\}", value_str)
@@ -1332,10 +1338,10 @@ class CGenCfgData:
 
     def detect_fsp (self):
         cfg_segs = self.get_cfg_segment ()
-        if len(cfg_segs) == 3:
+        if len(cfg_segs) >= 3:
             fsp = True
             for idx, seg in enumerate(cfg_segs):
-                if not seg[0].endswith('UPD_%s' % 'TMS'[idx]):
+                if not seg[0].endswith('UPD_%s' % 'RTMS'[idx]):
                     fsp = False
                     break
         else:
@@ -2140,13 +2146,14 @@ def main():
             fi   = open (file_list[2], 'rb')
             new_data = bytearray (fi.read ())
             fi.close ()
-            if len(new_data) != len(old_data):
+            if len(new_data) < len(old_data):
                 raise Exception ("Binary file '%s' length does not match, ignored !" % file_list[2])
-            else:
-                gen_cfg_data.load_default_from_bin (new_data)
-                gen_cfg_data.override_default_value(dlt_file)
-
-        gen_cfg_data.generate_binary(out_file, yml_scope)
+            gen_cfg_data.load_default_from_bin (new_data)
+            gen_cfg_data.override_default_value(dlt_file)
+            bins = gen_cfg_data.save_current_to_bin()
+            gen_file_from_object (out_file, bins)
+        else:
+            gen_cfg_data.generate_binary(out_file, yml_scope)
 
     elif command == "GENDLT":
         full = True if 'FULL' in gen_cfg_data._macro_dict else False

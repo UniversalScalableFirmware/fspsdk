@@ -416,6 +416,7 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x4000 | 0x000%d | 0x000%d | 0x0002,                           @FSP-R Component Attribute"  % (build_type, fsp_arch),
          "<[0x0000]>+0x00B8, 658FF4B0-DD33-4295-AC27-13E5A268D991:0x1C - <[0x0000]>,                                             @FSP-R CFG Offset",
          "<[0x0000]>+0x00BC, [658FF4B0-DD33-4295-AC27-13E5A268D991:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-R CFG Size",
+         "FsprInit:_FspInfoHeaderRelativeOff, FsprInit:_AsmGetFspInfoHeader - {912740BE-2284-4734-B971-84B027353F0C:0x1C},       @FSP-R Header Offset",
          "0x0000,            0x00000000,                                                                                         @Restore the value"
          ]
 

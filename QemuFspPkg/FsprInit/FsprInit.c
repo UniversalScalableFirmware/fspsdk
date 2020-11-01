@@ -362,11 +362,11 @@ ContinueFunc (
   IN VOID                      *Context2
   )
 {
-  UINT32       Idx;
-  EFI_STATUS   Status;
-  UINT32      *OemFvBase;
-  VOID        *OemEntry;
-  VOID        *HobList;
+  UINT32             Idx;
+  EFI_STATUS         Status;
+  VOID              *HobList;
+  FSP_INFO_HEADER   *FspInfoHeader;
+  FSPR_UPD          *FsprUpd;
 
   HobList = Context1;
 
@@ -384,11 +384,19 @@ ContinueFunc (
   DEBUG ((DEBUG_INFO, "HobList is located at 0x%08x\n", HobList));
   DEBUG ((DEBUG_INFO, "\n============= FSP-R Exit =============\n"));
 
-  DEBUG ((DEBUG_INFO, "\nJump into OEM entry\n"));
+  FspInfoHeader  = (FSP_INFO_HEADER *)AsmGetFspInfoHeader();
+  FsprUpd = (FSPR_UPD *)(UINTN)(FspInfoHeader->ImageBase + FspInfoHeader->CfgRegionOffset);
+  if (FsprUpd->FsprConfig.OemEntryPoint != 0) {
+    DEBUG ((DEBUG_INFO, "\nJump into OEM entry 0x%08x\n", FsprUpd->FsprConfig.OemEntryPoint));
+    JumpToOemEntry (
+                     (VOID *)(FsprUpd->FsprConfig.OemEntryPoint),
+                     HobList,
+                     PcdGet32 (PcdTemporaryRamBase),
+                     PcdGet32 (PcdTemporaryRamSize)
+                   );
+  } else {
+    DEBUG ((DEBUG_ERROR, "\nInvalid OEM entry !!!\n"));
+  }
 
-  OemFvBase = (UINT32 *)(*(UINT32 *)(FixedPcdGet32(PcdFspAreaBaseAddress) - 4));
-  OemEntry  = (VOID *)OemFvBase[0];
-  JumpToOemEntry (OemEntry, HobList, 0, 0x80000);
-
-  while (1);
+  CpuDeadLoop ();
 }
