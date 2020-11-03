@@ -15,65 +15,26 @@ QEMU FSP SDK Build Steps
 
 .. code-block:: none
 
-    git clone -b qemu_fsp_x64 https://github.com/universalpayload/fspsdk.git
+    git clone -b qemu_fsp_at_reset https://github.com/universalpayload/fspsdk.git
     cd fspsdk
     git submodule update --init
-    # Build 64 bit QEMU FSP
-    python buildFsp.py build qemu -a x64
     # Build 32 bit QEMU FSP
-    python buildFsp.py build qemu -a ia32
+    python buildFsp.py build -p qemu -a ia32
 
 .. _EDK2: https://github.com/tianocore/edk2.git
 
-FSP YAML Configuration
+FSP @ Reset
 ------------------------
-This code base prototyped YAML based FSP UPD configuration options instead of the old DSC
-based FSP UPD configuration. As part of it, the standard ConfigEditor tool is also added
-to support FSP UPD binary patching.
+This branch demonstrated a POC for enabling bootable FSP on QEMU platform.
 
-* To configure FSP UPD using ConfigEditor tool
+Traditional FSP has FSP-T/M/S components. This POC extends this idea one step further to
+add a new FSP-R component to handle the platform boot flow.  The FSP-R component does not
+provide any API interface. Instead, it takes control from reset vector and then start
+from there. Internally, it will call FSP-T/M/S to complete the required initialization.
+And eventually, it jumps into an OEM boot block (OBB) entry point.
 
-  - Launch IntelFsp2Pkg\ConfigEditor.py
+In this flow, FSP-R reuses the UPD binary block to provide platform configurations to
+assist the platform initialization. These UPDs need to be configured statically so that
+the platform can be initialized properly from the reset vector.
 
-  - Load FSP yaml configuration file using menu "Open Config YAML file"
-
-  - Load FSP binary file using menu "Load Configuration Data from Binary"
-
-  - Make FSP UPD configuration modifications as required
-
-  - Save the modified UPD changes back into FSP binary using menu "Save Configuration Data to Binary"
-
-|
-
-* To convert FSP UPD format from dsc or bsf to yaml format::
-
-     python IntelFsp2Pkg\Tools\FspDscBsf2Yaml.py  FspBsfOrDscFile  FspYamlFile
-
-* To export FSP UPD configuration into a full DLT format::
-
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENDLT  FspYamlFile;FspBinFile  FspDltFile -DFULL
-
-* To export FSP UPD configuration changes from the default value into DLT format::
-
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENDLT  FspYamlFile;FspBinFile  FspDltFile
-
-* To generate FSP UPD configuration binary::
-
-     # Generate FSP UPD default binary
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENBIN YamlFile BinOutFile
-
-     # Patch a binary using DLT file
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENBIN YamlFile;DltFile BinOutFile
-
-* To generate FSP UPD configuration C header file::
-
-     # Generate full FSP UPD header
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENHDR YamlFile HeaderOutFile
-
-     # Generate FSPM UPD header only
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENHDR YamlFile@FSPM_UPD HeaderOutFile
-
-* To generate a single full combined YAML file::
-
-     python IntelFsp2Pkg\Tools\GenCfgData.py GENYML YamlFile  FullYamlrOutFile
 
