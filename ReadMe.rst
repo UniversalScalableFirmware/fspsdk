@@ -15,7 +15,7 @@ QEMU FSP SDK Build Steps
 
 .. code-block:: none
 
-    git clone -b qemu_fsp_x64 https://github.com/universalpayload/fspsdk.git
+    git clone -b qemu_fsp_yaml https://github.com/universalpayload/fspsdk.git
     cd fspsdk
     git submodule update --init
     # Build 64 bit QEMU FSP
