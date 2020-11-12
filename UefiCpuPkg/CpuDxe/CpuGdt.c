@@ -1,5 +1,5 @@
 /** @file
-  C based implementation of IA32 interrupt handling only
+  C based implemention of IA32 interrupt handling only
   requiring a minimal assembly interrupt entry point.
 
   Copyright (c) 2006 - 2015, Intel Corporation. All rights reserved.<BR>
@@ -70,14 +70,14 @@ STATIC GDT_ENTRIES GdtTemplate = {
     0x0,
   },
   //
-  // SYS_CODE16_SEL
+  // SPARE4_SEL
   //
   {
-    0x0FFFF,        // limit 15:0
+    0x0,            // limit 15:0
     0x0,            // base 15:0
     0x0,            // base 23:16
-    0x09A,          // present, ring 0, code, execute/read
-    0x08F,          // page-granular, 16-bit
+    0x0,            // type
+    0x0,            // limit 19:16, flags
     0x0,            // base 31:24
   },
   //

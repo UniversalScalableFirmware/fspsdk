@@ -18,8 +18,6 @@
 ; CommonExceptionHandler()
 ;
 
-%define VC_EXCEPTION 29
-
 extern ASM_PFX(mErrorCodeFlag)    ; Error code flags for exceptions
 extern ASM_PFX(mDoFarReturnFlag)  ; Do far return flag
 extern ASM_PFX(CommonExceptionHandler)
@@ -36,7 +34,7 @@ AsmIdtVectorBegin:
     db      0x6a        ; push  #VectorNum
     db      ($ - AsmIdtVectorBegin) / ((AsmIdtVectorEnd - AsmIdtVectorBegin) / 32) ; VectorNum
     push    rax
-    mov     rax, ASM_PFX(CommonInterruptEntry)
+    mov     rax, strict qword 0 ;    mov     rax, ASM_PFX(CommonInterruptEntry)
     jmp     rax
 %endrep
 AsmIdtVectorEnd:
@@ -46,7 +44,8 @@ HookAfterStubHeaderBegin:
 @VectorNum:
     db      0          ; 0 will be fixed
     push    rax
-    mov     rax, HookAfterStubHeaderEnd
+    mov     rax, strict qword 0 ;     mov     rax, HookAfterStubHeaderEnd
+JmpAbsoluteAddress:
     jmp     rax
 HookAfterStubHeaderEnd:
     mov     rax, rsp
@@ -185,19 +184,17 @@ HasErrorCode:
     push    rax
     push    rax
     sidt    [rsp]
-    mov     bx, word [rsp]
-    mov     rax, qword [rsp + 2]
-    mov     qword [rsp], rax
-    mov     word [rsp + 8], bx
+    xchg    rax, [rsp + 2]
+    xchg    rax, [rsp]
+    xchg    rax, [rsp + 8]
 
     xor     rax, rax
     push    rax
     push    rax
     sgdt    [rsp]
-    mov     bx, word [rsp]
-    mov     rax, qword [rsp + 2]
-    mov     qword [rsp], rax
-    mov     word [rsp + 8], bx
+    xchg    rax, [rsp + 2]
+    xchg    rax, [rsp]
+    xchg    rax, [rsp + 8]
 
 ;; UINT64  Ldtr, Tr;
     xor     rax, rax
@@ -226,9 +223,6 @@ HasErrorCode:
     push    rax
 
 ;; UINT64  Dr0, Dr1, Dr2, Dr3, Dr6, Dr7;
-    cmp     qword [rbp + 8], VC_EXCEPTION
-    je      VcDebugRegs          ; For SEV-ES (#VC) Debug registers ignored
-
     mov     rax, dr7
     push    rax
     mov     rax, dr6
@@ -241,19 +235,7 @@ HasErrorCode:
     push    rax
     mov     rax, dr0
     push    rax
-    jmp     DrFinish
 
-VcDebugRegs:
-;; UINT64  Dr0, Dr1, Dr2, Dr3, Dr6, Dr7 are skipped for #VC to avoid exception recursion
-    xor     rax, rax
-    push    rax
-    push    rax
-    push    rax
-    push    rax
-    push    rax
-    push    rax
-
-DrFinish:
 ;; FX_SAVE_STATE_X64 FxSaveState;
     sub rsp, 512
     mov rdi, rsp
@@ -273,8 +255,7 @@ DrFinish:
     ; and make sure RSP is 16-byte aligned
     ;
     sub     rsp, 4 * 8 + 8
-    mov     rax, ASM_PFX(CommonExceptionHandler)
-    call    rax
+    call    ASM_PFX(CommonExceptionHandler)
     add     rsp, 4 * 8 + 8
 
     cli
@@ -382,11 +363,24 @@ DoIret:
 ; comments here for definition of address map
 global ASM_PFX(AsmGetTemplateAddressMap)
 ASM_PFX(AsmGetTemplateAddressMap):
-    mov     rax, AsmIdtVectorBegin
+    lea     rax, [AsmIdtVectorBegin]
     mov     qword [rcx], rax
     mov     qword [rcx + 0x8],  (AsmIdtVectorEnd - AsmIdtVectorBegin) / 32
-    mov     rax, HookAfterStubHeaderBegin
+    lea     rax, [HookAfterStubHeaderBegin]
     mov     qword [rcx + 0x10], rax
+
+; Fix up CommonInterruptEntry address
+    lea    rax, [ASM_PFX(CommonInterruptEntry)]
+    lea    rcx, [AsmIdtVectorBegin]
+%rep  32
+    mov    qword [rcx + (JmpAbsoluteAddress - 8 - HookAfterStubHeaderBegin)], rax
+    add    rcx, (AsmIdtVectorEnd - AsmIdtVectorBegin) / 32
+%endrep
+; Fix up HookAfterStubHeaderEnd
+    lea    rax, [HookAfterStubHeaderEnd]
+    lea    rcx, [JmpAbsoluteAddress]
+    mov    qword [rcx - 8], rax
+
     ret
 
 ;-------------------------------------------------------------------------------------

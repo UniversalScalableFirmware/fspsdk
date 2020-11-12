@@ -14,22 +14,22 @@
 ##
 
 [Defines]
-DEFINE FLASH_BASE           = 0xFFFC8000
+DEFINE FLASH_BASE           = 0xFFFB0000
 DEFINE FLASH_BLOCK_SIZE     = 0x00000100
 
 #
 # Flash Size for Visual Studio and GCC
 #
-DEFINE FLASH_SIZE           = 0x00038000
-DEFINE FLASH_NUM_BLOCKS     = 0x380          #The number of blocks
+DEFINE FLASH_SIZE           = 0x00050000
+DEFINE FLASH_NUM_BLOCKS     = 0x500          #The number of blocks
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase  = 0x00000000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x00015000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x0002F000
 
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase  = 0x00015000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00022000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase  = 0x0002F000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00020000
 
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x00037000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x0004F000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00001000
 
 ################################################################################
@@ -211,6 +211,24 @@ INF RuleOverride = RELOC  USE = $(FSP_ARCH)  IntelFsp2Pkg/FspSecCore/FspSecCoreS
 INF                       USE = $(FSP_ARCH)  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/FspsInit/FspsInit.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
+
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/SmmAccess/SmmAccessPei.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/SmmControl/SmmControlPei.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  UefiCpuPkg/CpuMpPei/CpuMpPei.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  StandaloneMmPkg/Drivers/CpuMpInfoPei/CpuMpInfoPei.inf
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  StandaloneMmPkg/Drivers/StandaloneMmIplPei/StandaloneMmIplPei.inf
+
+INF StandaloneMmPkg/Core/StandaloneMmCore.inf
+INF StandaloneMmPkg/Drivers/StandaloneMmCpu/X64/PiSmmCpuStandaloneSmm.inf
+
+#FILE MM_CORE_STANDALONE = 6E14B6FD-3600-4DD6-A17A-206B3B6DCE16 {
+#    SECTION PE32 = $(FSP_PACKAGE)/Binaries/StandaloneMmCore.efi
+#  }
+#
+#FILE MM_STANDALONE = 1B3BC280-14B1-4D93-8E48-C2F80C457AF3 {
+#    SECTION PE32 = $(FSP_PACKAGE)/Binaries/PiSmmCpuStandaloneSmm.efi
+#  }
+
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
 
 
@@ -268,4 +286,19 @@ INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNoti
 [Rule.Common.USER_DEFINED.FSPHEADER]
   FILE RAW = $(NAMED_GUID)               {
      RAW BIN                  |.acpi
+  }
+
+[Rule.Common.MM_CORE_STANDALONE]
+  FILE MM_CORE_STANDALONE = $(NAMED_GUID) {
+    PE32     PE32                    $(INF_OUTPUT)/$(MODULE_NAME).efi
+    UI       STRING="$(MODULE_NAME)" Optional
+    VERSION  STRING="$(INF_VERSION)" Optional BUILD_NUM=$(BUILD_NUMBER)
+  }
+
+[Rule.Common.MM_STANDALONE]
+  FILE MM_STANDALONE = $(NAMED_GUID) {
+    SMM_DEPEX    SMM_DEPEX Optional      $(INF_OUTPUT)/$(MODULE_NAME).depex
+    PE32     PE32                    $(INF_OUTPUT)/$(MODULE_NAME).efi
+    UI       STRING="$(MODULE_NAME)" Optional
+    VERSION  STRING="$(INF_VERSION)" Optional BUILD_NUM=$(BUILD_NUMBER)
   }

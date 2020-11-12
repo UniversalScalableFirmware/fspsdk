@@ -17,8 +17,8 @@
 **/
 VOID
 ArchUpdateIdtEntry (
-  OUT IA32_IDT_GATE_DESCRIPTOR       *IdtEntry,
-  IN  UINTN                          InterruptHandler
+  IN IA32_IDT_GATE_DESCRIPTOR        *IdtEntry,
+  IN UINTN                           InterruptHandler
   )
 {
   IdtEntry->Bits.OffsetLow   = (UINT16)(UINTN)InterruptHandler;

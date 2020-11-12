@@ -1,0 +1,52 @@
+## @file
+# A PEIM providing synchronous SMI activations via the
+# EFI_SMM_CONTROL_PPI.
+#
+# Copyright (C) 2013, 2015, Red Hat, Inc.
+# Copyright (c) 2019, Intel Corporation. All rights reserved.<BR>
+#
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = SmmControlPei
+  FILE_GUID                      = 1EE01EBF-E53D-445F-8C87-D83574EBC3E5
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = SmmControlPeiEntryPoint
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+
+[Sources]
+  SmmControlPei.c
+
+[Packages]
+  MdeModulePkg/MdeModulePkg.dec
+  MdePkg/MdePkg.dec
+  QemuFspPkg/QemuFspPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  BaseMemoryLib
+  DebugLib
+  HobLib
+  IoLib
+  PcdLib
+  PciLib
+  PeiServicesLib
+  PeimEntryPoint
+
+[FeaturePcd]
+  gQemuFspPkgTokenSpaceGuid.PcdSmmSmramRequire
+
+[Ppis]
+  gPeiSmmControlPpiGuid           ## PRODUCES
+
+[Depex]
+  gEfiPeiMemoryDiscoveredPpiGuid

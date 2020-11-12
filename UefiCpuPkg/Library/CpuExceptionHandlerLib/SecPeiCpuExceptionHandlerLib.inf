@@ -48,4 +48,3 @@
   PrintLib
   LocalApicLib
   PeCoffGetEntryPointLib
-  VmgExitLib

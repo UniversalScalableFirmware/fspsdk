@@ -1,0 +1,57 @@
+## @file
+# Implementation of MP CPU driver for PEI phase.
+#
+# This PEIM is to expose the MpService Ppi
+# Copyright (c) 2012 - 2019, Intel Corporation. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = CpuMpInfoPei
+  FILE_GUID                      = F7CEFF4B-BCD5-430D-B442-D1DC329CBDB1
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = CpuMpInfoPeimInit
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64
+#
+#  HOB Guid C Name: gEfiHtBistHobGuid Hob Type: GUID_EXTENSION
+#
+
+[Sources]
+  CpuMpInfoPei.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  UefiCpuPkg/UefiCpuPkg.dec
+  StandaloneMmPkg/StandaloneMmPkg.dec
+
+[LibraryClasses]
+  PcdLib
+  HobLib
+  BaseMemoryLib
+  PeiServicesLib
+  BaseLib
+  PeimEntryPoint
+  DebugLib
+  LocalApicLib
+  SynchronizationLib
+
+[Ppis]
+  gEfiPeiMpServicesPpiGuid                      # PPI ALWAYS_CONSUMED
+
+[Guids]
+  gMpInformationHobGuid                         # HOB ALWAYS_PRODUCED
+
+[Pcd]
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber
+
+[Depex]
+  gEfiPeiMpServicesPpiGuid
+  

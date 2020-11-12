@@ -58,7 +58,7 @@ SemaphoreHook (
                                     );
 
   //
-  // Use temp value to fix ICC compiler warning
+  // Use temp value to fix ICC complier warning
   //
   TempValue = (UINTN)&mSmmRelocationOriginalAddress;
   PatchInstructionX86 (

@@ -1,0 +1,43 @@
+## @file
+#  SW SMI handler for Bootloader
+#
+#  Copyright (c) 2011 - 2020, Intel Corporation. All rights reserved.<BR>
+#
+#  This program and the accompanying materials
+#  are licensed and made available under the terms and conditions of the BSD License
+#  which accompanies this distribution. The full text of the license may be found at
+#  http://opensource.org/licenses/bsd-license.php.
+#  THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = StandaloneMmSwSmiHandler
+  FILE_GUID                      = AA292DE7-E11E-42E6-846B-5813A5A8D982
+  MODULE_TYPE                    = MM_STANDALONE
+  PI_SPECIFICATION_VERSION       = 0x00010032
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = InitializeStandaloneMmSwSmiHandler
+
+[Sources]
+  StandaloneMmSwSmiHandler.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  UefiCpuPkg/UefiCpuPkg.dec
+  StandaloneMmPkg/StandaloneMmPkg.dec
+
+[LibraryClasses]
+  BaseLib   
+  IoLib
+  HobLib
+  StandaloneMmDriverEntryPoint
+
+[Protocols]
+  gEfiSmmCpuProtocolGuid
+
+[Depex]
+  gEfiSmmCpuProtocolGuid

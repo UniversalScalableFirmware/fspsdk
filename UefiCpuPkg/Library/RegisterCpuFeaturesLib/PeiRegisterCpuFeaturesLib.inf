@@ -1,7 +1,7 @@
 ## @file
 #  Register CPU Features Library PEI instance.
 #
-#  Copyright (c) 2017 - 2020, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2017 - 2019, Intel Corporation. All rights reserved.<BR>
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 ##
@@ -45,6 +45,7 @@
   IoLib
 
 [Ppis]
+  gEfiPeiMpServicesPpiGuid                                             ## CONSUMES
   gEdkiiPeiMpServices2PpiGuid                                          ## CONSUMES
 
 [Pcd]
@@ -54,4 +55,4 @@
   gUefiCpuPkgTokenSpaceGuid.PcdCpuFeaturesSetting                      ## CONSUMES ## PRODUCES
 
 [Depex]
-  gEdkiiPeiMpServices2PpiGuid AND gEdkiiCpuFeaturesSetDoneGuid
+  gEfiPeiMpServicesPpiGuid AND gEdkiiCpuFeaturesSetDoneGuid

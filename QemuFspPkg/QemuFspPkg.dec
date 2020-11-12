@@ -46,6 +46,4 @@
 
 [PcdsFeatureFlag]
   gQemuFspPkgTokenSpaceGuid.PcdStatusCodeUseIsaSerial     | TRUE                 | BOOLEAN | 0x00000017
-
-
-
+  gQemuFspPkgTokenSpaceGuid.PcdSmmSmramRequire            | TRUE                 | BOOLEAN | 0x00000018

@@ -46,9 +46,6 @@
   BaseMemoryLib
   CpuLib
 
-[Guids]
-  gEdkiiMigratedFvInfoGuid                                             ## SOMETIMES_CONSUMES     ## HOB
-
 [Ppis]
   gEfiPeiMpServicesPpiGuid                      ## PRODUCES
   gEfiSecPlatformInformationPpiGuid             ## SOMETIMES_CONSUMES
@@ -66,7 +63,6 @@
   gUefiCpuPkgTokenSpaceGuid.PcdCpuStackSwitchExceptionList              ## SOMETIMES_CONSUMES
   gUefiCpuPkgTokenSpaceGuid.PcdCpuKnownGoodStackSize                    ## SOMETIMES_CONSUMES
   gUefiCpuPkgTokenSpaceGuid.PcdCpuApStackSize                           ## SOMETIMES_CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdMigrateTemporaryRamFirmwareVolumes  ## CONSUMES
 
 [Depex]
   TRUE

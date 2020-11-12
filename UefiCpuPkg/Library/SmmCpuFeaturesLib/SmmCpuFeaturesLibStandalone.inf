@@ -1,0 +1,36 @@
+## @file
+#  The CPU specific programming for PiSmmCpuDxeSmm module.
+#
+#  Copyright (c) 2009 - 2019, Intel Corporation. All rights reserved.<BR>
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = SmmCpuFeaturesLibStandalone
+  MODULE_UNI_FILE                = SmmCpuFeaturesLib.uni
+  FILE_GUID                      = 4365D94A-22C9-468F-AA4D-CF2057453515
+  MODULE_TYPE                    = MM_STANDALONE
+  VERSION_STRING                 = 1.0
+  PI_SPECIFICATION_VERSION       = 0x00010032
+  LIBRARY_CLASS                  = SmmCpuFeaturesLib
+  CONSTRUCTOR                    = SmmStandaloneCpuFeaturesLibConstructor
+
+[Sources]
+  SmmCpuFeaturesLibStandalone.c
+  SmmCpuFeaturesLib.c
+  SmmCpuFeaturesLibNoStm.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  UefiCpuPkg/UefiCpuPkg.dec
+
+[LibraryClasses]
+  BaseLib
+  PcdLib
+  MemoryAllocationLib
+  DebugLib
+
+[Pcd]
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber        ## SOMETIMES_CONSUMES

@@ -435,7 +435,7 @@ ConvertMemoryPageAttributes (
   EFI_PHYSICAL_ADDRESS              MaximumSupportMemAddress;
 
   ASSERT (Attributes != 0);
-  ASSERT ((Attributes & ~EFI_MEMORY_ATTRIBUTE_MASK) == 0);
+  ASSERT ((Attributes & ~(EFI_MEMORY_RP | EFI_MEMORY_RO | EFI_MEMORY_XP)) == 0);
 
   ASSERT ((BaseAddress & (SIZE_4KB - 1)) == 0);
   ASSERT ((Length & (SIZE_4KB - 1)) == 0);
@@ -465,7 +465,7 @@ ConvertMemoryPageAttributes (
   }
 
   //
-  // Below logic is to check 2M/4K page to make sure we do not waste memory.
+  // Below logic is to check 2M/4K page to make sure we donot waist memory.
   //
   while (Length != 0) {
     PageEntry = GetPageTableEntry (BaseAddress, &PageAttribute);
@@ -1065,7 +1065,7 @@ IsUefiPageNotPresent (
 }
 
 /**
-  Merge continuous memory map entries whose type is
+  Merge continous memory map entries whose type is
   EfiLoaderCode/Data, EfiBootServicesCode/Data, EfiConventionalMemory,
   EfiUnusableMemory, EfiACPIReclaimMemory, because the memory described by
   these entries will be set as NOT present in SMM page table.

@@ -1,9 +1,7 @@
 /** @file
   Common header file for MP Initialize Library.
 
-  Copyright (c) 2016 - 2020, Intel Corporation. All rights reserved.<BR>
-  Copyright (c) 2020, AMD Inc. All rights reserved.<BR>
-
+  Copyright (c) 2016 - 2019, Intel Corporation. All rights reserved.<BR>
   SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
@@ -14,7 +12,6 @@
 #include <PiPei.h>
 
 #include <Register/Intel/Cpuid.h>
-#include <Register/Amd/Cpuid.h>
 #include <Register/Intel/Msr.h>
 #include <Register/Intel/LocalApic.h>
 #include <Register/Intel/Microcode.h>
@@ -31,9 +28,6 @@
 #include <Library/SynchronizationLib.h>
 #include <Library/MtrrLib.h>
 #include <Library/HobLib.h>
-#include <Library/PcdLib.h>
-
-#include <Guid/MicrocodePatchHob.h>
 
 #define WAKEUP_AP_SIGNAL SIGNATURE_32 ('S', 'T', 'A', 'P')
 
@@ -48,19 +42,6 @@
 #define CPU_SWITCH_STATE_IDLE   0
 #define CPU_SWITCH_STATE_STORED 1
 #define CPU_SWITCH_STATE_LOADED 2
-
-//
-// Default maximum number of entries to store the microcode patches information
-//
-#define DEFAULT_MAX_MICROCODE_PATCH_NUM 8
-
-//
-// Data structure for microcode patch information
-//
-typedef struct {
-  UINTN    Address;
-  UINTN    Size;
-} MICROCODE_PATCH_INFO;
 
 //
 // CPU exchange information for switch BSP
@@ -141,9 +122,6 @@ typedef struct {
   UINT64                         CurrentTime;
   UINT64                         TotalTime;
   EFI_EVENT                      WaitEvent;
-  UINT32                         ProcessorSignature;
-  UINT8                          PlatformId;
-  UINT64                         MicrocodeEntryAddr;
 } CPU_AP_DATA;
 
 //
@@ -173,11 +151,6 @@ typedef struct {
   UINT8             *RelocateApLoopFuncAddress;
   UINTN             RelocateApLoopFuncSize;
   UINTN             ModeTransitionOffset;
-  UINTN             SwitchToRealSize;
-  UINTN             SwitchToRealOffset;
-  UINTN             SwitchToRealNoNxOffset;
-  UINTN             SwitchToRealPM16ModeOffset;
-  UINTN             SwitchToRealPM16ModeSize;
 } MP_ASSEMBLY_ADDRESS_MAP;
 
 typedef struct _CPU_MP_DATA  CPU_MP_DATA;
@@ -216,8 +189,6 @@ typedef struct {
   // Enable5LevelPaging indicates whether 5-level paging is enabled in long mode.
   //
   BOOLEAN               Enable5LevelPaging;
-  BOOLEAN               SevEsIsEnabled;
-  UINTN                 GhcbBase;
 } MP_CPU_EXCHANGE_INFO;
 
 #pragma pack()
@@ -256,6 +227,7 @@ struct _CPU_MP_DATA {
   UINTN                          **FailedCpuList;
 
   AP_INIT_STATE                  InitFlag;
+  BOOLEAN                        X2ApicEnable;
   BOOLEAN                        SwitchBspFlag;
   UINTN                          NewBspNumber;
   CPU_EXCHANGE_ROLE_INFO         BSPInfo;
@@ -264,7 +236,6 @@ struct _CPU_MP_DATA {
   UINT8                          ApLoopMode;
   UINT8                          ApTargetCState;
   UINT16                         PmCodeSegment;
-  UINT16                         Pm16CodeSegment;
   CPU_AP_DATA                    *CpuData;
   volatile MP_CPU_EXCHANGE_INFO  *MpCpuExchangeInfo;
 
@@ -276,6 +247,11 @@ struct _CPU_MP_DATA {
   UINT64                         MicrocodePatchAddress;
   UINT64                         MicrocodePatchRegionSize;
 
+  UINT32                         ProcessorSignature;
+  UINT32                         ProcessorFlags;
+  UINT64                         MicrocodeDataAddress;
+  UINT32                         MicrocodeRevision;
+
   //
   // Whether need to use Init-Sipi-Sipi to wake up the APs.
   // Two cases need to set this value to TRUE. One is in HLT
@@ -284,49 +260,7 @@ struct _CPU_MP_DATA {
   // driver.
   //
   BOOLEAN                        WakeUpByInitSipiSipi;
-
-  BOOLEAN                        SevEsIsEnabled;
-  UINTN                          SevEsAPBuffer;
-  UINTN                          SevEsAPResetStackStart;
-  CPU_MP_DATA                    *NewCpuMpData;
-
-  UINT64                         GhcbBase;
 };
-
-#define AP_SAFE_STACK_SIZE  128
-#define AP_RESET_STACK_SIZE AP_SAFE_STACK_SIZE
-
-#pragma pack(1)
-
-typedef struct {
-  UINT8   InsnBuffer[8];
-  UINT16  Rip;
-  UINT16  Segment;
-} SEV_ES_AP_JMP_FAR;
-
-#pragma pack()
-
-/**
-  Assembly code to move an AP from long mode to real mode.
-
-  Move an AP from long mode to real mode in preparation to invoking
-  the reset vector.  This is used for SEV-ES guests where a hypervisor
-  is not allowed to set the CS and RIP to point to the reset vector.
-
-  @param[in]  BufferStart  The reset vector target.
-  @param[in]  Code16       16-bit protected mode code segment value.
-  @param[in]  Code32       32-bit protected mode code segment value.
-  @param[in]  StackStart   The start of a stack to be used for transitioning
-                           from long mode to real mode.
-**/
-typedef
-VOID
-(EFIAPI AP_RESET) (
-  IN UINTN    BufferStart,
-  IN UINT16   Code16,
-  IN UINT16   Code32,
-  IN UINTN    StackStart
-  );
 
 extern EFI_GUID mCpuInitMpLibHobGuid;
 
@@ -351,10 +285,7 @@ VOID
   IN UINTN                   ApTargetCState,
   IN UINTN                   PmCodeSegment,
   IN UINTN                   TopOfApStack,
-  IN UINTN                   NumberToFinish,
-  IN UINTN                   Pm16CodeSegment,
-  IN UINTN                   SevEsAPJumpTable,
-  IN UINTN                   WakeupBuffer
+  IN UINTN                   NumberToFinish
   );
 
 /**
@@ -434,19 +365,6 @@ GetWakeupBuffer (
 UINTN
 GetModeTransitionBuffer (
   IN UINTN                BufferSize
-  );
-
-/**
-  Return the address of the SEV-ES AP jump table.
-
-  This buffer is required in order for an SEV-ES guest to transition from
-  UEFI into an OS.
-
-  @return         Return SEV-ES AP jump table buffer
-**/
-UINTN
-GetSevEsAPMemory (
-  VOID
   );
 
 /**
@@ -647,46 +565,13 @@ CheckAndUpdateApsStatus (
 /**
   Detect whether specified processor can find matching microcode patch and load it.
 
-  @param[in]  CpuMpData        The pointer to CPU MP Data structure.
-  @param[in]  ProcessorNumber  The handle number of the processor. The range is
-                               from 0 to the total number of logical processors
-                               minus 1.
+  @param[in]  CpuMpData    The pointer to CPU MP Data structure.
+  @param[in]  IsBspCallIn  Indicate whether the caller is BSP or not.
 **/
 VOID
 MicrocodeDetect (
   IN CPU_MP_DATA             *CpuMpData,
-  IN UINTN                   ProcessorNumber
-  );
-
-/**
-  Shadow the required microcode patches data into memory.
-
-  @param[in, out]  CpuMpData    The pointer to CPU MP Data structure.
-**/
-VOID
-ShadowMicrocodeUpdatePatch (
-  IN OUT CPU_MP_DATA             *CpuMpData
-  );
-
-/**
-  Get the cached microcode patch base address and size from the microcode patch
-  information cache HOB.
-
-  @param[out] Address       Base address of the microcode patches data.
-                            It will be updated if the microcode patch
-                            information cache HOB is found.
-  @param[out] RegionSize    Size of the microcode patches data.
-                            It will be updated if the microcode patch
-                            information cache HOB is found.
-
-  @retval  TRUE     The microcode patch information cache HOB is found.
-  @retval  FALSE    The microcode patch information cache HOB is not found.
-
-**/
-BOOLEAN
-GetMicrocodePatchInfoFromHob (
-  UINT64                         *Address,
-  UINT64                         *RegionSize
+  IN BOOLEAN                 IsBspCallIn
   );
 
 /**
@@ -707,37 +592,6 @@ IsMwaitSupport (
 VOID
 EnableDebugAgent (
   VOID
-  );
-
-/**
-  Find the current Processor number by APIC ID.
-
-  @param[in]  CpuMpData         Pointer to PEI CPU MP Data
-  @param[out] ProcessorNumber   Return the pocessor number found
-
-  @retval EFI_SUCCESS          ProcessorNumber is found and returned.
-  @retval EFI_NOT_FOUND        ProcessorNumber is not found.
-**/
-EFI_STATUS
-GetProcessorNumber (
-  IN CPU_MP_DATA               *CpuMpData,
-  OUT UINTN                    *ProcessorNumber
-  );
-
-/**
-  This funtion will try to invoke platform specific microcode shadow logic to
-  relocate microcode update patches into memory.
-
-  @param[in, out] CpuMpData  The pointer to CPU MP Data structure.
-
-  @retval EFI_SUCCESS              Shadow microcode success.
-  @retval EFI_OUT_OF_RESOURCES     No enough resource to complete the operation.
-  @retval EFI_UNSUPPORTED          Can't find platform specific microcode shadow
-                                   PPI/Protocol.
-**/
-EFI_STATUS
-PlatformShadowMicrocode (
-  IN OUT CPU_MP_DATA             *CpuMpData
   );
 
 #endif

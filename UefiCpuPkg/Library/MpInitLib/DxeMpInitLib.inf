@@ -1,7 +1,7 @@
 ## @file
 #  MP Initialize Library instance for DXE driver.
 #
-#  Copyright (c) 2016 - 2020, Intel Corporation. All rights reserved.<BR>
+#  Copyright (c) 2016 - 2017, Intel Corporation. All rights reserved.<BR>
 #  SPDX-License-Identifier: BSD-2-Clause-Patent
 #
 ##
@@ -51,8 +51,6 @@
   UefiBootServicesTableLib
   DebugAgentLib
   SynchronizationLib
-  PcdLib
-  VmgExitLib
 
 [Protocols]
   gEfiTimerArchProtocolGuid                     ## SOMETIMES_CONSUMES
@@ -60,19 +58,14 @@
 [Guids]
   gEfiEventExitBootServicesGuid                 ## CONSUMES  ## Event
   gEfiEventLegacyBootGuid                       ## SOMETIMES_CONSUMES  ## Event
-  gEdkiiMicrocodePatchHobGuid                   ## SOMETIMES_CONSUMES  ## HOB
 
 [Pcd]
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber            ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuBootLogicalProcessorNumber           ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuApInitTimeOutInMicroSeconds          ## SOMETIMES_CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuApStackSize                          ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuMicrocodePatchAddress                ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuMicrocodePatchRegionSize             ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuApLoopMode                           ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuApTargetCstate                       ## SOMETIMES_CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdCpuApStatusCheckIntervalInMicroSeconds  ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdSevEsIsEnabled                          ## CONSUMES
-  gUefiCpuPkgTokenSpaceGuid.PcdSevEsWorkAreaBase                       ## SOMETIMES_CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdCpuStackGuard                      ## CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdGhcbBase                           ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber        ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuApInitTimeOutInMicroSeconds      ## SOMETIMES_CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuApStackSize                      ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuMicrocodePatchAddress            ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuMicrocodePatchRegionSize         ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuApLoopMode                       ## CONSUMES
+  gUefiCpuPkgTokenSpaceGuid.PcdCpuApTargetCstate                   ## SOMETIMES_CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdCpuStackGuard                  ## CONSUMES
+

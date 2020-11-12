@@ -112,6 +112,37 @@
   SerialPortLib|MdePkg/Library/BaseSerialPortLibNull/BaseSerialPortLibNull.inf
 !endif
 
+  CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/PeiCpuExceptionHandlerLib.inf
+  LocalApicLib|UefiCpuPkg/Library/BaseXApicX2ApicLib/BaseXApicX2ApicLib.inf
+  MpInitLib|UefiCpuPkg/Library/MpInitLib/PeiMpInitLib.inf
+  MtrrLib|UefiCpuPkg/Library/MtrrLib/MtrrLib.inf
+  TimerLib|$(FSP_PACKAGE)/Library/AcpiTimerLib/BaseAcpiTimerLib.inf
+
+[LibraryClasses.X64.MM_CORE_STANDALONE]
+  StandaloneMmCoreEntryPoint|StandaloneMmPkg/Library/StandaloneMmCoreEntryPoint/StandaloneMmCoreEntryPoint.inf
+  MmServicesTableLib|MdePkg/Library/StandaloneMmServicesTableLib/StandaloneMmServicesTableLib.inf
+  MemLib|StandaloneMmPkg/Library/StandaloneMmMemLib/StandaloneMmMemLib.inf
+  MemoryAllocationLib|StandaloneMmPkg/Library/StandaloneMmCoreMemoryAllocationLib/StandaloneMmCoreMemoryAllocationLib.inf
+  HobLib|StandaloneMmPkg/Library/StandaloneMmCoreHobLib/StandaloneMmCoreHobLib.inf
+  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
+  FvLib|StandaloneMmPkg/Library/FvLib/FvLib.inf
+  ExtractGuidedSectionLib|StandaloneMmPkg/Library/SimpleExtractGuidedSectionLib/SimpleExtractGuidedSectionLib.inf
+  PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
+
+[LibraryClasses.X64.MM_STANDALONE]
+  StandaloneMmDriverEntryPoint|MdePkg/Library/StandaloneMmDriverEntryPoint/StandaloneMmDriverEntryPoint.inf
+  MmServicesTableLib|MdePkg/Library/StandaloneMmServicesTableLib/StandaloneMmServicesTableLib.inf
+  MemLib|StandaloneMmPkg/Library/StandaloneMmMemLib/StandaloneMmMemLib.inf
+  MemoryAllocationLib|StandaloneMmPkg/Library/StandaloneMmMemoryAllocationLib/StandaloneMmMemoryAllocationLib.inf
+  HobLib|StandaloneMmPkg/Library/StandaloneMmHobLib/StandaloneMmHobLib.inf
+  SmmCpuPlatformHookLib|UefiCpuPkg/Library/SmmCpuPlatformHookLibNull/SmmCpuPlatformHookLibNull.inf
+  CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/SmmCpuExceptionHandlerLib.inf
+  SmmCpuFeaturesLib|$(FSP_PACKAGE)/Library/SmmCpuFeaturesLib/SmmCpuFeaturesLibStandalone.inf
+  DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
+  ReportStatusCodeLib|MdePkg/Library/BaseReportStatusCodeLibNull/BaseReportStatusCodeLibNull.inf
+  PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
+
 
 ################################################################################
 #
@@ -138,7 +169,7 @@
 
   # This is a platform specific global pointer used by FSP
   gIntelFsp2PkgTokenSpaceGuid.PcdGlobalDataPointerAddress | 0xFED00148
-  gIntelFsp2PkgTokenSpaceGuid.PcdFspReservedMemoryLength  | 0x00100000
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspReservedMemoryLength  | 0x00800000
 
 !if $(TARGET) == RELEASE
   gEfiMdePkgTokenSpaceGuid.PcdFixedDebugPrintErrorLevel   | 0x00000000
@@ -410,6 +441,16 @@
   $(FSP_PACKAGE)/FspmInit/FspmInit.inf
   $(FSP_PACKAGE)/FspsInit/FspsInit.inf
   $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
+
+  $(FSP_PACKAGE)/SmmAccess/SmmAccessPei.inf
+  $(FSP_PACKAGE)/SmmControl/SmmControlPei.inf
+  UefiCpuPkg/CpuMpPei/CpuMpPei.inf
+  StandaloneMmPkg/Drivers/CpuMpInfoPei/CpuMpInfoPei.inf
+  StandaloneMmPkg/Drivers/StandaloneMmIplPei/StandaloneMmIplPei.inf
+
+  StandaloneMmPkg/Core/StandaloneMmCore.inf
+  StandaloneMmPkg/Drivers/StandaloneMmCpu/X64/PiSmmCpuStandaloneSmm.inf
+
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf {
     <LibraryClasses>
       DebugAgentLib|MdeModulePkg/Library/DebugAgentLibNull/DebugAgentLibNull.inf
