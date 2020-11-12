@@ -6,6 +6,15 @@ FSP SDK is a fork of EDK2_ project. The purpose of this repo is to create a
 basic infrastructure to support create FSP binary.  For demonstration, QEMU virtual
 platform is used here.
 
+Standalone SMM Support
+----------------------
+
+This qemu_fsp_x64_smm branch is a POC that attempts to demonstrate the launch of a Standalone SMM module from FSP.
+
+The Standalone SMM module is built using EDK2's StandaloneMmPkg with x64 implementation of StandaloneMmCpu.
+https://moam.info/a-tour-beyond-bios-launching-standalone-smm-drivers-in-the-pei-_59ba8de81723ddd7c6870a1e.html
+
+
 
 QEMU FSP SDK Build Steps
 ------------------------
@@ -20,7 +29,5 @@ QEMU FSP SDK Build Steps
   git submodule update --init
   # Build 64 bit QEMU FSP
   python buildFsp.py build qemu -a x64
-  # Build 32 bit QEMU FSP
-  python buildFsp.py build qemu -a ia32
-
+  
 .. _EDK2: https://github.com/tianocore/edk2.git
