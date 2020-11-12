@@ -28,7 +28,7 @@ QEMU FSP SDK Build Steps
   cd fspsdk
   git submodule update --init
   # Build 64 bit QEMU FSP
-  python buildFsp.py build qemu -a x64
+  python buildFsp.py build -p qemu -a x64
   
 .. _EDK2: https://github.com/tianocore/edk2.git
 
