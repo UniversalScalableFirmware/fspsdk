@@ -12,7 +12,8 @@ Standalone SMM Support
 This qemu_fsp_x64_smm branch is a POC that attempts to demonstrate the launch of a Standalone SMM module from FSP.
 
 The Standalone SMM module is built using EDK2's StandaloneMmPkg with x64 implementation of StandaloneMmCpu.
-https://moam.info/a-tour-beyond-bios-launching-standalone-smm-drivers-in-the-pei-_59ba8de81723ddd7c6870a1e.html
+
+Ref: https://moam.info/a-tour-beyond-bios-launching-standalone-smm-drivers-in-the-pei-_59ba8de81723ddd7c6870a1e.html
 
 
 
