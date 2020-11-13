@@ -36,7 +36,7 @@ QEMU FSP SDK Build Steps
 SBL
 ---
 
-The FSP with Standalone SMM module was tested with Slim Bootloader available here - https://github.com/mauricema/slimbootloader/tree/qemu_fsp_x64
+The FSP with Standalone SMM module was tested with Slim Bootloader available here - https://github.com/universalpayload/slimbootloader/tree/sbl_qemu_fsp_x64
 
 Once the FSP is built, it needs to be copied to the Silicon\\QemuSocPkg\\FspBin folder as **FspRel.bin**. In addition to FspRel.bin, **Fsp.bsf** needs to be 
 copied as well to avoid SBL build process building a fresh FSP.
