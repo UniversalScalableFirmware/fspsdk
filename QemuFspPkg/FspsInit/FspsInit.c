@@ -42,6 +42,55 @@ static EFI_PEI_NOTIFY_DESCRIPTOR  mNotifyList[] = {
   }
 };
 
+CONST EFI_PEI_PPI_DESCRIPTOR gFspSiliconInitDonePpi = {
+  (EFI_PEI_PPI_DESCRIPTOR_PPI | EFI_PEI_PPI_DESCRIPTOR_TERMINATE_LIST),
+  &gFspSiliconInitDoneGuid,
+  NULL
+};
+
+
+
+/**
+  This function reports and installs new FV
+
+  @retval     EFI_SUCCESS          The function completes successfully
+**/
+EFI_STATUS
+ReportAndInstallNewFv (
+  VOID
+  )
+{
+  FSP_INFO_HEADER                *FspInfoHeader;
+  EFI_FIRMWARE_VOLUME_HEADER     *FvHeader;
+  UINT8                          *CurPtr;
+  UINT8                          *EndPtr;
+
+  FspInfoHeader = GetFspInfoHeaderFromApiContext();
+  if (FspInfoHeader->Signature != FSP_INFO_HEADER_SIGNATURE) {
+    DEBUG ((DEBUG_ERROR, "The signature of FspInfoHeader getting from API context is invalid at %p.\n", FspInfoHeader));
+    FspInfoHeader = GetFspInfoHeader();
+  }
+
+  CurPtr = (UINT8 *)(UINTN)FspInfoHeader->ImageBase;
+  EndPtr = CurPtr + FspInfoHeader->ImageSize - 1;
+
+  while (CurPtr < EndPtr) {
+    FvHeader = (EFI_FIRMWARE_VOLUME_HEADER *)CurPtr;
+    if (FvHeader->Signature != EFI_FVH_SIGNATURE) {
+      break;
+    }
+    PeiServicesInstallFvInfoPpi (
+      NULL,
+      (VOID *)FvHeader,
+      (UINT32)FvHeader->FvLength,
+      NULL,
+      NULL
+      );
+    CurPtr += FvHeader->FvLength;
+  }
+
+  return EFI_SUCCESS;
+}
 
 /**
   FSP graphics initialization after PCI enumeration
@@ -230,5 +279,22 @@ FspsInitEntryPoint (
   ASSERT_EFI_ERROR (Status);
 
   DEBUG ((DEBUG_INFO, "FspInitEntryPoint() - end\n"));
+  DEBUG ((DEBUG_INFO | DEBUG_INIT, "FSP is waiting for next API\n"));
+
+  //
+  // Give control back to BootLoader after FspSiliconInit
+  //
+  FspSiliconInitDone ();
+
+  DEBUG ((DEBUG_INFO | DEBUG_INIT, "FSP API After Silicon Init\n"));
+  DEBUG ((DEBUG_INFO | DEBUG_INIT, "FSP API Index = %x\n", GetFspApiCallingIndex()));
+  if (GetFspApiCallingIndex() == FspSmmApiIndex) {
+    DEBUG ((DEBUG_INFO | DEBUG_INIT, "Installing FSP SMM FV\n"));
+    ReportAndInstallNewFv ();
+  } else {
+    Status = PeiServicesInstallPpi (&gFspSiliconInitDonePpi);
+    ASSERT_EFI_ERROR (Status);
+  }
+
   return Status;
 }

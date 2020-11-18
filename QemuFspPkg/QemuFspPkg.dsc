@@ -32,9 +32,7 @@
   #
   # UPD tool definition
   #
-  FSP_T_UPD_TOOL_GUID            = 34686CA3-34F9-4901-B82A-BA630F0714C6
-  FSP_M_UPD_TOOL_GUID            = 39A250DB-E465-4DD1-A2AC-E2BD3C0E2385
-  FSP_S_UPD_TOOL_GUID            = CAE3605B-5B34-4C85-B3D7-27D54273C40F
+  FSP_I_UPD_FFS_GUID             = 658FF4B0-DD33-4295-AC27-13E5A268D991
   FSP_T_UPD_FFS_GUID             = 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA
   FSP_M_UPD_FFS_GUID             = D5B86AEA-6AF7-40D4-8014-982301BC3D89
   FSP_S_UPD_FFS_GUID             = E3CD9B18-998C-4F76-B65E-98B154E5446F
@@ -192,194 +190,6 @@
   gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel        | 0x80000047
 !endif
 
-[PcdsDynamicVpd.Upd]
-  #
-  # This section is not used by the normal build process
-  # However, FSP will use dedicated tool to handle it and generate a
-  # VPD similar binary block (User Configuration Data). This block will
-  # be accessed through a generated data structure directly rather than
-  # PCD services. This is for size consideration.
-  # Format:
-  #   gQemuFspPkgTokenSpaceGuid.Updxxxxxxxxxxxxn      | OFFSET | LENGTH | VALUE
-  # Only simple data type is supported
-  #
-
-  #
-  # Comments with !BSF will be used to generate BSF file
-  # Comments with !HDR will be used to generate H header file
-  #
-
-  # Global definitions in BSF
-  # !BSF PAGES:{MEM:"FSP MemoryInit Settings", SIL:"FSP SiliconInit Settings"}
-  # !BSF BLOCK:{NAME:"Apollo Lake Platform", VER:"0.1"}
-
-  # !BSF FIND:{QEMUPD_T}
-  # !HDR COMMENT:{FSP_UPD_HEADR:FSP UPD Header}
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
-  # FsptUpdSignature: {QEMUPD_T}
-  gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x545F4450554D4551
-  # !BSF NAME:{FsptUpdRevision}
-  gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
-  gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
-
-  # !HDR COMMENT:{FSPT_COMMON_UPD:Fsp T Common UPD}
-  # !HDR EMBED:{FSPT_COMMON_UPD:FsptCommonUpd:START}
-  gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0020 | 0x01 | 0x01
-  gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0021 | 0x03 | {0x00}
-
-  # Base address of the microcode region.
-  gQemuFspPkgTokenSpaceGuid.MicrocodeRegionBase         | 0x0024 | 0x04 | 0x00000000
-
-  # Length of the microcode region.
-  gQemuFspPkgTokenSpaceGuid.MicrocodeRegionLength       | 0x0028 | 0x04 | 0x00000000
-
-  # Base address of the cacheable flash region.
-  gQemuFspPkgTokenSpaceGuid.CodeRegionBase              | 0x002C | 0x04 | 0x00000000
-
-  # Length of the cacheable flash region.
-  gQemuFspPkgTokenSpaceGuid.CodeRegionLength            | 0x0030 | 0x04 | 0x00000000
-
-  # !HDR EMBED:{FSPT_COMMON_UPD:FsptCommonUpd:END}
-  gQemuFspPkgTokenSpaceGuid.Reserved1                   | 0x0034 | 0x0C | {0x00}
-
-  # !HDR COMMENT:{FSP_T_CONFIG:Fsp T Configuration}
-  # !HDR EMBED:{FSP_T_CONFIG:FsptConfig:START}
-
-  # !HDR EMBED:{FSP_T_CONFIG:FsptConfig:END}
-  gQemuFspPkgTokenSpaceGuid.ReservedFsptUpd1             | 0x0040 | 0x20 | {0x00}
-
-  # Note please keep "UpdTerminator" at the end of each UPD region.
-  # The tool will use this field to determine the actual end of the UPD data
-  # structure.
-  gQemuFspPkgTokenSpaceGuid.UpdTerminator               | 0x0090 | 0x02 | 0x55AA
-
-  ################################################################################
-  #
-  # UPDs consumed in FspMemoryInit Api
-  #
-  ################################################################################
-  # !BSF FIND:{QEMUPD_M}
-  # !HDR COMMENT:{FSP_UPD_HEADER:FSP UPD Header}
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
-  # FspmUpdSignature: {QEMUPD_M}
-  gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x4D5F4450554D4551
-  # !BSF NAME:{FspmUpdRevision}
-  gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
-  gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
-
-  # !HDR COMMENT:{FSPM_ARCH_UPD:Fsp M Architectural UPD}
-  # !HDR EMBED:{FSPM_ARCH_UPD:FspmArchUpd:START}
-  # !BSF PAGE:{MEM}
-
-  gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0020 | 0x01 | 0x01
-
-  gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0021 | 0x03 | {0x00}
-
-  # !HDR STRUCT:{VOID*}
-  gQemuFspPkgTokenSpaceGuid.NvsBufferPtr                | 0x0024 | 0x04 | 0x00000000
-
-  # !HDR STRUCT:{VOID*}
-  # !BSF NAME:{StackBase}
-  # !BSF HELP:{Stack base for FSP use. Default: 0xFEF16000}
-  gQemuFspPkgTokenSpaceGuid.StackBase                   | 0x0028 | 0x04 | $(CAR_BLD_REGION_SIZE)
-
-  # !BSF NAME:{StackSize}
-  # !BSF HELP:{To pass the stack size for FSP use. Bootloader can programmatically get the FSP requested StackSize by using the defaults in the FSP-M component. This is the minimum stack size expected by this revision of FSP. Default: 0x2A000}
-  gQemuFspPkgTokenSpaceGuid.StackSize                   | 0x002C | 0x04 | $(CAR_FSP_REGION_SIZE)
-
-  # !BSF NAME:{BootLoaderTolumSize}
-  # !BSF HELP:{To pass Bootloader Tolum size.}
-  gQemuFspPkgTokenSpaceGuid.BootLoaderTolumSize         | 0x0030 | 0x04 | 0x00000000
-
-  # !BSF NAME:{Bootmode}
-  # !BSF HELP:{To maintain Bootmode details.}
-  gPlatformFspPkgTokenSpaceGuid.Bootmode                   | 0x0034 | 0x04 | 0x00000000
-
-  # !HDR EMBED:{FSPM_ARCH_UPD:FspmArchUpd:END}
-  gQemuFspPkgTokenSpaceGuid.Reserved1                   | 0x0038 | 0x08 | {0x00}
-
-  # !HDR COMMENT:{FSP_M_CONFIG:Fsp M Configuration}
-  # !HDR EMBED:{FSP_M_CONFIG:FspmConfig:START}
-  # !BSF NAME:{Debug Serial Port Base address}
-  # !BSF TYPE:{EditNum, HEX, (0x00000000,0xFFFFFFFF)}
-  # !BSF HELP:{Debug serial port base address. This option will be used only when the 'Serial Port Debug Device'}
-  # !BSF HELP:{+ option is set to 'External Device'. 0x00000000(Default).}
-  gQemuFspPkgTokenSpaceGuid.SerialDebugPortAddress      | 0x0040 | 0x04 | 0x00000000
-
-  # !BSF NAME:{Debug Serial Port Type} TYPE:{Combo}
-  # !BSF OPTION:{0:NONE, 1:I/O, 2:MMIO}
-  # !BSF HELP:{16550 compatible debug serial port resource type. NONE means no serial port support. 0x02:MMIO(Default).}
-  gQemuFspPkgTokenSpaceGuid.SerialDebugPortType         | 0x0044 | 0x01 | 0x02
-
-  # !BSF NAME:{Serial Port Debug Device} TYPE:{Combo}
-  # !BSF OPTION:{0:SOC UART0, 1:SOC UART1, 2:SOC UART2, 3:External Device}
-  # !BSF HELP:{Select active serial port device for debug. }
-  # !BSF HELP:{+For SOC UART devices,'Debug Serial Port Base' options will be ignored. 0x02:SOC UART2(Default).}
-  gQemuFspPkgTokenSpaceGuid.SerialDebugPortDevice       | 0x0045 | 0x01 | 0x02
-
-  # !BSF NAME:{Debug Serial Port Stride Size} TYPE:{Combo}
-  # !BSF OPTION:{0:1, 2:4}
-  # !BSF HELP:{Debug serial port register map stride size in bytes. 0x00:1, 0x02:4(Default).}
-  gQemuFspPkgTokenSpaceGuid.SerialDebugPortStrideSize   | 0x0046 | 0x01 | 0x02
-
-
-  # !HDR EMBED:{FSP_M_CONFIG:FspmConfig:END}
-  gQemuFspPkgTokenSpaceGuid.ReservedFspmUpd             | 0x0078 | 0x04 | {0x00}
-
-
-  # Note please keep "UpdTerminator" at the end of each UPD region.
-  # The tool will use this field to determine the actual end of the UPD data
-  # structure.
-  gQemuFspPkgTokenSpaceGuid.UpdTerminator               | 0x007E | 0x02 | 0x55AA
-
-  ################################################################################
-  #
-  # UPDs consumed in FspSiliconInit Api
-  #
-  ################################################################################
-  # !BSF FIND:{QEMUPD_S}
-  # !HDR COMMENT:{FSP_UPD_HEADER:FSP UPD Header}
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:START}
-  # FspsUpdSignature: {QEMUPD_S}
-  gQemuFspPkgTokenSpaceGuid.Signature                   | 0x0000 | 0x08 | 0x535F4450554D4551
-  # !BSF NAME:{FspsUpdRevision}
-  gQemuFspPkgTokenSpaceGuid.Revision                    | 0x0008 | 0x01 | 0x01
-  # !HDR EMBED:{FSP_UPD_HEADER:FspUpdHeader:END}
-  gQemuFspPkgTokenSpaceGuid.Reserved                    | 0x0009 | 0x17 | {0x00}
-
-  # !HDR COMMENT:{FSP_S_CONFIG:Fsp S Configuration}
-  # !HDR EMBED:{FSP_S_CONFIG:FspsConfig:START}
-  # !BSF PAGE:{SIL}
-
-  # !BSF NAME:{BMP Logo Data Size}
-  # !BSF TYPE:{Reserved}
-  # !BSF HELP:{BMP logo data buffer size. 0x00000000(Default).}
-  gQemuFspPkgTokenSpaceGuid.LogoSize                    | 0x0040 | 0x04 | 0x00000000
-
-  # !BSF NAME:{BMP Logo Data Pointer}
-  # !BSF TYPE:{Reserved}
-  # !BSF HELP:{BMP logo data pointer to a BMP format buffer. 0x00000000(Default).}
-  gQemuFspPkgTokenSpaceGuid.LogoPtr                     | 0x0044 | 0x04 | 0x00000000
-
-  # !BSF NAME:{Graphics Configuration Data Pointer}
-  # !BSF TYPE:{Reserved}
-  # !BSF HELP:{Graphics configuration data used for initialization. 0x00000000(Default).}
-  gQemuFspPkgTokenSpaceGuid.GraphicsConfigPtr           | 0x0048 | 0x04 | 0x00000000
-
-  # !BSF NAME:{PCI GFX Temporary MMIO Base}
-  # !BSF TYPE:TYPE:{EditNum, HEX, (0x80000000,0xDFFFFFFF)}
-  # !BSF HELP:{PCI Temporary PCI GFX Base used before full PCI enumeration. 0x80000000(Default).}
-  gQemuFspPkgTokenSpaceGuid.PciTempResourceBase         | 0x004C | 0x04 | 0x80000000
-
-  # !HDR EMBED:{FSP_S_CONFIG:FspsConfig:END}
-  gQemuFspPkgTokenSpaceGuid.ReservedFspsUpd             | 0x0070 | 0x01 | 0x00
-
-  # Note please keep "UpdTerminator" at the end of each UPD region.
-  # The tool will use this field to determine the actual end of the UPD data
-  # structure.
-  gQemuFspPkgTokenSpaceGuid.UpdTerminator               | 0x007E | 0x02 | 0x55AA
 
 ###################################################################################################
 #
@@ -424,6 +234,12 @@
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecSLib.inf
   }
 
+  IntelFsp2Pkg/FspSecCore/FspSecCoreI.inf {
+    <LibraryClasses>
+      FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecILib.inf
+  }
+
+
   #
   # PEI Core
   #
@@ -442,6 +258,13 @@
   $(FSP_PACKAGE)/FspsInit/FspsInit.inf
   $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
 
+  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf {
+    <LibraryClasses>
+      DebugAgentLib|MdeModulePkg/Library/DebugAgentLibNull/DebugAgentLibNull.inf
+      ResetSystemLib|MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf
+  }
+  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
+
   $(FSP_PACKAGE)/SmmAccess/SmmAccessPei.inf
   $(FSP_PACKAGE)/SmmControl/SmmControlPei.inf
   UefiCpuPkg/CpuMpPei/CpuMpPei.inf
@@ -450,13 +273,8 @@
 
   StandaloneMmPkg/Core/StandaloneMmCore.inf
   StandaloneMmPkg/Drivers/StandaloneMmCpu/X64/PiSmmCpuStandaloneSmm.inf
+  QemuFspPkg/FspiInit/FspiInit.inf
 
-  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf {
-    <LibraryClasses>
-      DebugAgentLib|MdeModulePkg/Library/DebugAgentLibNull/DebugAgentLibNull.inf
-      ResetSystemLib|MdeModulePkg/Library/BaseResetSystemLibNull/BaseResetSystemLibNull.inf
-  }
-  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
 
 ###################################################################################################
 #

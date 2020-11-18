@@ -40,4 +40,4 @@
   gEfiEventReadyToBootGuid                ## PRODUCES ## Event
 
 [Depex]
-  gEfiDxeIplPpiGuid
+  gEfiDxeIplPpiGuid AND gFspSiliconInitDoneGuid

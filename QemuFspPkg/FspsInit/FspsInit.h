@@ -20,6 +20,7 @@
 #include <Library/HobLib.h>
 #include <Library/MemoryAllocationLib.h>
 #include <Library/FspCommonLib.h>
+#include <Library/FspPlatformLib.h>
 #include <Protocol/PciEnumerationComplete.h>
 #include <Ppi/EndOfPeiPhase.h>
 #include <Ppi/Graphics.h>

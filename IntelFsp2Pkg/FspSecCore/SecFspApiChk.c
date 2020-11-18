@@ -72,8 +72,11 @@ FspApiCallingCheck (
         Status = EFI_INVALID_PARAMETER;
       }
     }
-  } else {
-    Status = EFI_UNSUPPORTED;
+  } else if (ApiIdx == FspSmmApiIndex) {
+    //
+    // FspSmmApiIndex check
+    //
+    Status = EFI_SUCCESS;
   }
 
   if (!EFI_ERROR (Status)) {

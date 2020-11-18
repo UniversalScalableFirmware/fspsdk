@@ -33,6 +33,7 @@
   gEfiEndOfPeiSignalPpiGuid                 ## CONSUMES
   gEfiPeiStallPpiGuid                       ## CONSUMES
   gEfiPeiGraphicsPpiGuid                    ## CONSUMES
+  gFspSiliconInitDoneGuid                   ## PRODUCES
 
 [Protocols]
   gEfiPciEnumerationCompleteProtocolGuid    ## CONSUMES
@@ -48,6 +49,7 @@
   #
   PeimEntryPoint
   FspCommonLib
+  FspPlatformLib
 
 [Pcd]
 

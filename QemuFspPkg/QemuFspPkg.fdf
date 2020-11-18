@@ -14,23 +14,27 @@
 ##
 
 [Defines]
-DEFINE FLASH_BASE           = 0xFFFB0000
+DEFINE FLASH_BASE           = 0xFFFA0000
 DEFINE FLASH_BLOCK_SIZE     = 0x00000100
 
 #
 # Flash Size for Visual Studio and GCC
 #
-DEFINE FLASH_SIZE           = 0x00050000
-DEFINE FLASH_NUM_BLOCKS     = 0x500          #The number of blocks
+DEFINE FLASH_SIZE           = 0x00060000
+DEFINE FLASH_NUM_BLOCKS     = 0x600          #The number of blocks
 
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase  = 0x00000000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x0002F000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspIBase    = 0x00000000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspISize    = 0x00028000
 
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase  = 0x0002F000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00020000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase    = 0x00028000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize    = 0x00015000
 
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x0004F000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00001000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase    = 0x0003D000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize    = 0x00022000
+
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase    = 0x0005F000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize    = 0x00001000
+
 
 ################################################################################
 #
@@ -60,6 +64,10 @@ SET gIntelFsp2PkgTokenSpaceGuid.PcdFspBootFirmwareVolumeBase = $(FLASH_BASE) + (
 #FSP-C
 #gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspCOffset|gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspCSize
 #FV = FSP-C
+
+#FSP-I
+gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspIBase|gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspISize
+FV = FSP-I
 
 #FSP-S
 gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase|gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize
@@ -112,7 +120,7 @@ INF  RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_T_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_T_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FsptUpd.bin
 }
 
 INF RuleOverride = RELOC  USE = IA32 IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
@@ -146,7 +154,7 @@ INF  RuleOverride = FSPHEADER  USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_M_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_M_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FspmUpd.bin
 }
 
 #
@@ -200,7 +208,7 @@ INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 # Project specific configuration data files
 #
 FILE RAW = $(FSP_S_UPD_FFS_GUID) {
-    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_S_UPD_TOOL_GUID).bin
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FspsUpd.bin
 }
 
 #
@@ -212,24 +220,48 @@ INF                       USE = $(FSP_ARCH)  MdeModulePkg/Core/DxeIplPeim/DxeIpl
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/FspsInit/FspsInit.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/QemuVideo/QemuVideo.inf
 
+INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
+
+[FV.FSP-I]
+BlockSize          = $(FLASH_BLOCK_SIZE)
+FvAlignment        = 16
+ERASE_POLARITY     = 1
+MEMORY_MAPPED      = TRUE
+STICKY_WRITE       = TRUE
+LOCK_CAP           = TRUE
+LOCK_STATUS        = TRUE
+WRITE_DISABLED_CAP = TRUE
+WRITE_ENABLED_CAP  = TRUE
+WRITE_STATUS       = TRUE
+WRITE_LOCK_CAP     = TRUE
+WRITE_LOCK_STATUS  = TRUE
+READ_DISABLED_CAP  = TRUE
+READ_ENABLED_CAP   = TRUE
+READ_STATUS        = TRUE
+READ_LOCK_CAP      = TRUE
+READ_LOCK_STATUS   = TRUE
+FvNameGuid         = 874d1bfd-644c-4a83-9273-cafcae07201f
+
+#
+# FSP header
+#
+INF RuleOverride = FSPHEADER USE = IA32 $(FSP_PACKAGE)/FspHeader/FspHeader.inf
+INF RuleOverride = RELOC  USE = $(FSP_ARCH) IntelFsp2Pkg/FspSecCore/FspSecCoreI.inf
+
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/SmmAccess/SmmAccessPei.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  $(FSP_PACKAGE)/SmmControl/SmmControlPei.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  UefiCpuPkg/CpuMpPei/CpuMpPei.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  StandaloneMmPkg/Drivers/CpuMpInfoPei/CpuMpInfoPei.inf
 INF RuleOverride = PE32   USE = $(FSP_ARCH)  StandaloneMmPkg/Drivers/StandaloneMmIplPei/StandaloneMmIplPei.inf
 
+INF QemuFspPkg/FspiInit/FspiInit.inf
+
 INF StandaloneMmPkg/Core/StandaloneMmCore.inf
 INF StandaloneMmPkg/Drivers/StandaloneMmCpu/X64/PiSmmCpuStandaloneSmm.inf
 
-#FILE MM_CORE_STANDALONE = 6E14B6FD-3600-4DD6-A17A-206B3B6DCE16 {
-#    SECTION PE32 = $(FSP_PACKAGE)/Binaries/StandaloneMmCore.efi
-#  }
-#
-#FILE MM_STANDALONE = 1B3BC280-14B1-4D93-8E48-C2F80C457AF3 {
-#    SECTION PE32 = $(FSP_PACKAGE)/Binaries/PiSmmCpuStandaloneSmm.efi
-#  }
-
-INF RuleOverride = PE32   USE = $(FSP_ARCH)  IntelFsp2Pkg/FspNotifyPhase/FspNotifyPhasePeim.inf
+FILE RAW = $(FSP_I_UPD_FFS_GUID) {
+    SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/FspiUpd.bin
+}
 
 
 [Rule.Common.SEC]

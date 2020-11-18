@@ -308,58 +308,47 @@ def fatal(msg):
 def pre_build(target, toolchain, fsppkg):
 
     workspace = os.environ['WORKSPACE']
-    pkgname   = '%sFspPkg' % fsppkg
-
-    FspGuid = {
-        'FspTUpdGuid'       : '34686CA3-34F9-4901-B82A-BA630F0714C6',
-        'FspMUpdGuid'       : '39A250DB-E465-4DD1-A2AC-E2BD3C0E2385',
-        'FspSUpdGuid'       : 'CAE3605B-5B34-4C85-B3D7-27D54273C40F'
-    }
+    pkgname = fsppkg
+    fspbase = fsppkg[:-3]
+    updname = fspbase + 'Upd'
+    fvdir = 'Build/%s/%s_%s/FV' % (pkgname, target, toolchain)
+    if not os.path.exists (fvdir):
+        os.makedirs(fvdir)
 
     # !!!!!!!! Update VPD/UPD Information !!!!!!!!
-    print('Preparing VPD/UPD Information...')
+    print('Preparing UPD Information...')
 
-    pkgname = 'QemuFspPkg'
-
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py UPDTXT %s/%s.dsc Build/%s/%s_%s/FV' % (
-           workspace, pkgname, pkgname, pkgname, target, toolchain)
+    # Generate combined YAML file
+    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENYML %s/%s.yaml Build/%s/%s_%s/FV/%s.yaml' % (
+           workspace, pkgname, updname, pkgname, target, toolchain, fspbase)
     ret = subprocess.call(cmd.split(' '))
-    if not (ret == 0 or ret == 256):
-        fatal('Failed to generate UPD txt file !')
+    if not (ret == 0):
+        fatal('Failed to generate combined YAML file !')
 
-    print('UPD TXT file was generated successfully !')
+    print('Generate UPD Bianry File ...')
+    for fsp_comp in 'TMSI':
+        cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENBIN %s/%s.yaml@FSP%s_UPD Build/%s/%s_%s/FV/%s.bin' % (
+               workspace, pkgname, updname, fsp_comp, pkgname, target, toolchain, 'Fsp%sUpd' % fsp_comp.lower())
+        ret = subprocess.call(cmd.split(' '))
+        if not (ret == 0):
+            fatal('Failed to generate UPD binary file !')
 
     print('Generate UPD Header File ...')
-    bdpgpath = 'BPDG' if os.name == 'posix' else 'BPDG.bat'
-
-    fvdir = 'Build/%s/%s_%s/FV' % (pkgname, target, toolchain)
-    for fspcomp in FspGuid:
-        fspguid = FspGuid[fspcomp]
-        cmd = '%s %s/%s.txt' % (bdpgpath, fvdir, fspguid)
-        cmd = cmd + ' -o %s/%s.bin' % (fvdir, fspguid)
-        cmd = cmd + ' -m %s/%s.map' % (fvdir, fspguid)
-        filepath = '%s/%s/%s.bin' % (workspace, fvdir, fspguid)
-        if os.path.exists(filepath):
-            os.remove(filepath)
+    for fsp_comp in 'TMSI ':
+        if fsp_comp == ' ':
+            fsp_comp = ''
+            scope = 'FSP_SIG'
+        else:
+            scope = 'FSP%s_UPD' % fsp_comp
+        fliename = 'Fsp%sUpd.h' % fsp_comp.lower()
+        cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgData.py GENHDR %s/%s.yaml@%s %s/%s' % (
+               workspace, pkgname, updname, scope, fvdir, fliename)
         ret = subprocess.call(cmd.split(' '))
-        if ret:
-            fatal('Failed to generate UPD bin file !')
+        if not (ret == 0):
+            fatal('Failed to generate UPD header file !')
 
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        fatal('Failed to generate UPD header file !')
-
-    print('Generate BSF File ...')
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
-    ret = subprocess.call(cmd.split(' '))
-    if ret:
-        fatal('Failed to generate UPD BSF file !')
-
-    for fliename in ['FspUpd.h', 'FsptUpd.h', 'FspmUpd.h', 'FspsUpd.h']:
         shutil.copyfile('%s/%s' % (fvdir, fliename), '%s/Include/%s'%(pkgname, fliename))
+
     print('End of PreBuild...')
 
 
@@ -413,7 +402,20 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "FspSecCoreS:_FspInfoHeaderRelativeOff, FspSecCoreS:_AsmGetFspInfoHeader - {912740BE-2284-4734-B971-84B027353F0C:0x1C}, @FSP-S Header Offset"
          ]
 
-    for fspt, cmd in [('T', cmd1), ('M', cmd2), ('S',cmd3)]:
+    cmd4 = [
+         "0x0000,            _BASE_FSP-I_,                                                                                       @Temporary Base",
+         "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-I Size",
+         "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-I Base",
+         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-I Image Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x4000 | 0x000%d | 0x000%d | 0x0002,                           @FSP-I Component Attribute"  % (build_type, fsp_arch),
+         "<[0x0000]>+0x00B8, 658FF4B0-DD33-4295-AC27-13E5A268D991:0x1C - <[0x0000]>,                                             @FSP-I CFG Offset",
+         "<[0x0000]>+0x00BC, [658FF4B0-DD33-4295-AC27-13E5A268D991:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-I CFG Size",
+         "<[0x0000]>+0x00D8, FspSecCoreI:_FspSmmInitApi - [0x0000],                                                              @SmmInit API",
+         "0x0000,            0x00000000,                                                                                         @Restore the value",
+         "FspSecCoreI:_FspInfoHeaderRelativeOff, FspSecCoreI:_AsmGetFspInfoHeader - {912740BE-2284-4734-B971-84B027353F0C:0x1C}, @FSP-I Header Offset"
+         ]
+
+    for fspt, cmd in [('T', cmd1), ('M', cmd2), ('S',cmd3), ('I',cmd4)]:
         print ('Patch FSP-%s Image ...' % fspt)
         line = ['python', patchfv, fvdir, 'FSP-%s:QEMUFSP' % fspt]
         line.extend(cmd)
@@ -423,8 +425,9 @@ def post_build (target, toolchain, fsppkg, fsparch):
 
     copy_list = [
         ('QEMUFSP.fd',  'QEMU_FSP_%s.fd' % target),
-        ('QemuFsp.bsf', 'QEMU_FSP.bsf'),
+        ('QemuFsp.yaml', 'QEMU_FSP.yaml'),
         ('FspUpd.h',    'FspUpd.h'),
+        ('FspiUpd.h',   'FspiUpd.h'),
         ('FsptUpd.h',   'FsptUpd.h'),
         ('FspmUpd.h',   'FspmUpd.h'),
         ('FspsUpd.h',   'FspsUpd.h'),

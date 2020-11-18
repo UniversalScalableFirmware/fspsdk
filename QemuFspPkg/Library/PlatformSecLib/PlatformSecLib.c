@@ -52,7 +52,7 @@ FspUpdSignatureCheck (
   Status = EFI_SUCCESS;
   FspmUpd = NULL;
   FspsUpd = NULL;
-
+/*
   if (ApiIdx == FspMemoryInitApiIndex) {
     //
     // FspMemoryInit check
@@ -76,7 +76,7 @@ FspUpdSignatureCheck (
       }
     }
   }
-
+*/
   return Status;
 }
 
