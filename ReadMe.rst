@@ -12,7 +12,8 @@ Standalone SMM Support
 This qemu_fsp_x64_smm branch is a POC that attempts to demonstrate the launch of a Standalone SMM module from FSP.
 
 The Standalone SMM module is built using EDK2's StandaloneMmPkg with x64 implementation of StandaloneMmCpu.
-https://moam.info/a-tour-beyond-bios-launching-standalone-smm-drivers-in-the-pei-_59ba8de81723ddd7c6870a1e.html
+
+Ref: https://moam.info/a-tour-beyond-bios-launching-standalone-smm-drivers-in-the-pei-_59ba8de81723ddd7c6870a1e.html
 
 
 
@@ -28,7 +29,7 @@ QEMU FSP SDK Build Steps
   cd fspsdk
   git submodule update --init
   # Build 64 bit QEMU FSP
-  python buildFsp.py build qemu -a x64
+  python buildFsp.py build -p qemu -a x64
   
 .. _EDK2: https://github.com/tianocore/edk2.git
 
@@ -36,7 +37,7 @@ QEMU FSP SDK Build Steps
 SBL
 ---
 
-The FSP with Standalone SMM module was tested with Slim Bootloader available here - https://github.com/mauricema/slimbootloader/tree/qemu_fsp_x64
+The FSP with Standalone SMM module was tested with Slim Bootloader available here - https://github.com/universalpayload/slimbootloader/tree/sbl_qemu_fsp_x64
 
 Once the FSP is built, it needs to be copied to the Silicon\\QemuSocPkg\\FspBin folder as **FspRel.bin**. In addition to FspRel.bin, **Fsp.bsf** needs to be 
 copied as well to avoid SBL build process building a fresh FSP.
