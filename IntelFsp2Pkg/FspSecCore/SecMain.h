@@ -41,22 +41,6 @@ typedef struct _SEC_IDT_TABLE {
 } SEC_IDT_TABLE;
 
 /**
-  Switch the stack in the temporary memory to the one in the permanent memory.
-
-  This function must be invoked after the memory migration immediately. The relative
-  position of the stack in the temporary and permanent memory is same.
-
-  @param[in] TemporaryMemoryBase  Base address of the temporary memory.
-  @param[in] PermenentMemoryBase  Base address of the permanent memory.
-**/
-VOID
-EFIAPI
-SecSwitchStack (
-  IN UINT32   TemporaryMemoryBase,
-  IN UINT32   PermenentMemoryBase
-  );
-
-/**
   This service of the TEMPORARY_RAM_SUPPORT_PPI that migrates temporary RAM into
   permanent memory.
 

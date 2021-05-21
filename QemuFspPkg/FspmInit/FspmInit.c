@@ -356,10 +356,12 @@ GetSystemMemorySizeAbove4Gb (
 /**
   Initialize PCI Express BAR
 
+  @param[in] Did         Host bridge PCI DID.
+
 **/
 VOID
 PciExBarInitialization (
-  VOID
+  IN  UINT16  Did
   )
 {
   union {
@@ -381,30 +383,41 @@ PciExBarInitialization (
   PciExBarBase.Uint64 = PcdGet64 (PcdPciExpressBaseAddress);
   ASSERT ((PciExBarBase.Uint32[1] & MCH_PCIEXBAR_HIGHMASK) == 0);
   ASSERT ((PciExBarBase.Uint32[0] & MCH_PCIEXBAR_LOWMASK) == 0);
+  if (Did == INTEL_X58_MCH_DEVICE_ID) {
+    //
+    // Programe PCI MMCFG BAR for X58
+    //
+    PciCf8Write32 (
+      REGISTER_X58_PCIEXBAR,
+      PciExBarBase.Uint32[0] | MCH_PCIEXBAR_EN
+      );
+  } else {
+    //
+    // Clear the PCIEXBAREN bit first, before programming the high register.
+    //
+    PciCf8Write32 (DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_LOW), 0);
 
-  //
-  // Clear the PCIEXBAREN bit first, before programming the high register.
-  //
-  PciCf8Write32 (DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_LOW), 0);
-
-  //
-  // Program the high register. Then program the low register, setting the
-  // MMCONFIG area size and enabling decoding at once.
-  //
-  PciCf8Write32 (DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_HIGH), PciExBarBase.Uint32[1]);
-  PciCf8Write32 (
-    DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_LOW),
-    PciExBarBase.Uint32[0] | MCH_PCIEXBAR_BUS_FF | MCH_PCIEXBAR_EN
-    );
+    //
+    // Program the high register. Then program the low register, setting the
+    // MMCONFIG area size and enabling decoding at once.
+    //
+    PciCf8Write32 (DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_HIGH), PciExBarBase.Uint32[1]);
+    PciCf8Write32 (
+      DRAMC_REGISTER_Q35 (MCH_PCIEXBAR_LOW),
+      PciExBarBase.Uint32[0] | MCH_PCIEXBAR_BUS_FF | MCH_PCIEXBAR_EN
+      );
+  }
 }
 
 /**
   Miscellaneous chipset initialization
 
+  @param[in] Did         Host bridge PCI DID.
+
 **/
 VOID
 MiscInitialization (
-  VOID
+  IN  UINT16  Did
   )
 {
   UINTN         PmCmd;
@@ -422,12 +435,21 @@ MiscInitialization (
   //
   // Determine platform type and save Host Bridge DID to PCD
   //
-  PmCmd      = POWER_MGMT_REGISTER_Q35 (PCI_COMMAND_OFFSET);
-  Pmba       = POWER_MGMT_REGISTER_Q35 (ICH9_PMBASE);
-  PmbaAndVal = ~(UINT32)ICH9_PMBASE_MASK;
-  PmbaOrVal  = ICH9_PMBASE_VALUE;
-  AcpiCtlReg = POWER_MGMT_REGISTER_Q35 (ICH9_ACPI_CNTL);
-  AcpiEnBit  = ICH9_ACPI_CNTL_ACPI_EN;
+  if (Did == INTEL_X58_MCH_DEVICE_ID) {
+    PmCmd      = POWER_MGMT_REGISTER_ICH10 (PCI_COMMAND_OFFSET);
+    Pmba       = POWER_MGMT_REGISTER_ICH10 (ICH10_PMBASE);
+    PmbaAndVal = ~(UINT32)ICH10_PMBASE_MASK;
+    PmbaOrVal  = ICH10_PMBASE_IO;
+    AcpiCtlReg = POWER_MGMT_REGISTER_ICH10 (ICH10_ACPI_CNTL);
+    AcpiEnBit  = ICH10_ACPI_CNTL_ACPI_EN;
+  } else {
+    PmCmd      = POWER_MGMT_REGISTER_Q35 (PCI_COMMAND_OFFSET);
+    Pmba       = POWER_MGMT_REGISTER_Q35 (ICH9_PMBASE);
+    PmbaAndVal = ~(UINT32)ICH9_PMBASE_MASK;
+    PmbaOrVal  = ICH9_PMBASE_VALUE;
+    AcpiCtlReg = POWER_MGMT_REGISTER_Q35 (ICH9_ACPI_CNTL);
+    AcpiEnBit  = ICH9_ACPI_CNTL_ACPI_EN;
+  }
 
   //
   // If the appropriate IOspace enable bit is set, assume the ACPI PMBA
@@ -452,6 +474,35 @@ MiscInitialization (
     PciOr8 (AcpiCtlReg, AcpiEnBit);
   }
 
+  if (Did == INTEL_X58_MCH_DEVICE_ID) {
+    //
+    // Set Root Complex Register Block BAR
+    //
+    PciWrite32 (
+      POWER_MGMT_REGISTER_ICH10 (ICH10_RCBA),
+      ICH10_ROOT_COMPLEX_BASE | ICH10_RCBA_EN
+      );
+
+    //
+    // Enable AHCI and all ports on the SATA controller.
+    //
+    // Address MAP Reg, setting AHCI mode
+    //
+    PciOr16 (PCI_LIB_ADDRESS (0, 31, 2, 0x90), 0x0060);
+    //
+    //Enabling Ports 0-5
+    //
+    PciOr16 (PCI_LIB_ADDRESS (0, 31, 2, 0x92), 0x003F);
+    //
+    //Disabling Sata Controller 2, bit 25 = 1, bit 0 = 1
+    //
+    MmioWrite32(0xFED1F418, 0x02000001);
+    //
+    //Config and enable APIC
+    //
+    MmioWrite8(ICH10_ROOT_COMPLEX_BASE + 0x31FF, 0x01);
+  }
+
 }
 
 /**
@@ -472,15 +523,15 @@ PlatformInit (
   // Query Host Bridge DID
   //
   HostBridgeDevId = PciCf8Read16 (OVMF_HOSTBRIDGE_DID);
-  if (HostBridgeDevId != INTEL_Q35_MCH_DEVICE_ID) {
-    DEBUG ((DEBUG_ERROR, "Unknown Host Bridge Device ID: 0x%04x\n"));
+  if ((HostBridgeDevId != INTEL_Q35_MCH_DEVICE_ID) && (HostBridgeDevId != INTEL_X58_MCH_DEVICE_ID)) {
+    DEBUG ((DEBUG_ERROR, "Unknown Host Bridge Device ID: 0x%04x\n", HostBridgeDevId));
     ASSERT (FALSE);
     return EFI_UNSUPPORTED;
   }
 
-  PciExBarInitialization ();
+  PciExBarInitialization (HostBridgeDevId);
 
-  MiscInitialization ();
+  MiscInitialization (HostBridgeDevId);
 
   return EFI_SUCCESS;
 }
@@ -523,6 +574,7 @@ InitializeSmramTsegSize (
   } else {
     TsegMbytes = ExtendedTsegMbytes;
   }
+
   return (UINT32)TsegMbytes << 20;
 }
 
@@ -552,6 +604,11 @@ FspmInitEntryPoint (
   UINT64                          HighMemLen;
   UINT32                          TsegSize;
   UINT32                          TsegBase;
+  UINT8                           EsmramcVal;
+  UINT8                           Q35TsegMbytes;
+  UINT8                           RegMask8;
+  UINT32                          TopOfLowRam;
+  UINT32                          TopOfLowRamMb;
 
   DEBUG ((DEBUG_INFO, "FspmInitPoint() - Begin\n"));
 
@@ -583,9 +640,76 @@ FspmInitEntryPoint (
 
   LowMemLen  = GetSystemMemorySizeBelow4Gb();
   HighMemLen = GetSystemMemorySizeAbove4Gb();
-
   TsegSize   = InitializeSmramTsegSize ();
   TsegBase   = LowMemLen - TsegSize;
+
+  //
+  // Confirm if QEMU supports SMRAM.
+  //
+  // With no support for it, the ESMRAMC (Extended System Management RAM
+  // Control) register reads as zero. If there is support, the cache-enable
+  // bits are hard-coded as 1 by QEMU.
+  //
+  EsmramcVal = PciRead8 (DRAMC_REGISTER_Q35 (MCH_ESMRAMC));
+  RegMask8 = MCH_ESMRAMC_SM_CACHE | MCH_ESMRAMC_SM_L1 | MCH_ESMRAMC_SM_L2;
+
+  TopOfLowRam = LowMemLen;
+  ASSERT ((TopOfLowRam & (SIZE_1MB - 1)) == 0);
+  TopOfLowRamMb = TopOfLowRam >> 20;
+
+  //
+  // Some of the following registers are no-ops for QEMU at the moment, but it
+  // is recommended to set them correctly, since the ESMRAMC that we ultimately
+  // care about is in the same set of registers.
+  //
+  // First, we disable the integrated VGA, and set both the GTT Graphics Memory
+  // Size and the Graphics Mode Select memory pre-allocation fields to zero.
+  // This takes just one write to the Graphics Control Register.
+  //
+  PciWrite16 (DRAMC_REGISTER_Q35 (MCH_GGC), MCH_GGC_IVD);
+
+  //
+  // Set Top of Low Usable DRAM.
+  //
+  PciWrite16 (DRAMC_REGISTER_Q35 (MCH_TOLUD),
+    (UINT16)(TopOfLowRamMb << MCH_TOLUD_MB_SHIFT));
+
+  //
+  // Given the zero graphics memory sizes configured above, set the
+  // graphics-related stolen memory bases to the same as TOLUD.
+  //
+  PciWrite32 (DRAMC_REGISTER_Q35 (MCH_GBSM),
+    TopOfLowRamMb << MCH_GBSM_MB_SHIFT);
+  PciWrite32 (DRAMC_REGISTER_Q35 (MCH_BGSM),
+    TopOfLowRamMb << MCH_BGSM_MB_SHIFT);
+
+  //
+  // Set TSEG Memory Base.
+  //
+  PciWrite32 (DRAMC_REGISTER_Q35 (MCH_TSEGMB),
+    (TopOfLowRamMb << MCH_TSEGMB_MB_SHIFT) - TsegSize);
+
+  Q35TsegMbytes = (UINT8)(TsegSize >> MCH_TSEGMB_MB_SHIFT);
+
+  //
+  // Set TSEG size, and disable TSEG visibility outside of SMM. Note that the
+  // T_EN bit has inverse meaning; when T_EN is set, then TSEG visibility is
+  // *restricted* to SMM.
+  //
+  EsmramcVal &= ~(UINT32)MCH_ESMRAMC_TSEG_MASK;
+  EsmramcVal |= Q35TsegMbytes == 8 ? MCH_ESMRAMC_TSEG_8MB :
+                Q35TsegMbytes == 2 ? MCH_ESMRAMC_TSEG_2MB :
+                Q35TsegMbytes == 1 ? MCH_ESMRAMC_TSEG_1MB :
+                MCH_ESMRAMC_TSEG_EXT;
+  EsmramcVal |= MCH_ESMRAMC_T_EN;
+  PciWrite8 (DRAMC_REGISTER_Q35 (MCH_ESMRAMC), EsmramcVal);
+
+  //
+  // TSEG should be closed (see above), but unlocked, initially. Set G_SMRAME
+  // (Global SMRAM Enable) too, as both D_LCK and T_EN depend on it.
+  //
+  PciAndThenOr8 (DRAMC_REGISTER_Q35 (MCH_SMRAM),
+    (UINT8)((~(UINT32)MCH_SMRAM_D_LCK) & 0xff), MCH_SMRAM_G_SMRAME);
 
   PeiMemSize = PcdGet32(PcdFspReservedMemoryLength);
   ASSERT (LowMemLen > PeiMemSize + TsegSize);

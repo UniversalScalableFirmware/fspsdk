@@ -35,6 +35,7 @@ extern  ASM_PFX(FspApiCommon)
 extern  ASM_PFX(AsmGetFspInfoHeader)
 extern  ASM_PFX(AsmGetFspBaseAddress)
 extern  ASM_PFX(PcdGet8 (PcdFspHeapSizePercentage))
+extern  ASM_PFX(PcdGet32 (PcdFspReservedBufferSize))
 
 global ASM_PFX(FspPeiCoreEntryOff)
 ASM_PFX(FspPeiCoreEntryOff):
@@ -105,6 +106,7 @@ FspStackSetup:
   ; Set up a dedicated temp ram stack for FSP if FSP heap size % doesn't equal 0
   ;
   add    rdi, rcx
+  sub    edi, [ASM_PFX(PcdGet32 (PcdFspReservedBufferSize))]
   ;
   ; Switch to new FSP stack
   ;

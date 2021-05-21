@@ -106,7 +106,7 @@ def check_for_git():
 def get_openssl_path ():
     if os.name == 'nt':
         if 'OPENSSL_PATH' not in os.environ:
-            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\"
+            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\bin"
         if 'OPENSSL_CONF' not in os.environ:
             openssl_cfg = "C:\\Openssl\\openssl.cfg"
             if os.path.exists(openssl_cfg):
@@ -271,7 +271,7 @@ def prep_env ():
         if 'NASM_PREFIX' not in os.environ:
             os.environ['NASM_PREFIX'] = "C:\\Nasm\\"
         if 'OPENSSL_PATH' not in os.environ:
-            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\"
+            os.environ['OPENSSL_PATH'] = "C:\\Openssl\\bin"
         if 'IASL_PREFIX' not in os.environ:
             os.environ['IASL_PREFIX'] = "C:\\ASL\\"
     else:
@@ -375,8 +375,8 @@ def post_build (target, toolchain, fsppkg, fsparch):
            "0x0000,            _BASE_FSP-T_,                                                                                       @Temporary Base",
            "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-T Size",
            "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-T Base",
-           "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-T Image Attribute",
-           "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x1000 | 0x000%d | 0x0002,                                     @FSP-T Component Attribute" % build_type,
+           "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFF) | 0x0001,                                                        @FSP-T Image Attribute",
+           "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0x0FF8) | 0x1000 | 0x000%d | 0x000%d | 0x0002,                                     @FSP-T Component Attribute" % (build_type, fsp_arch),
            "<[0x0000]>+0x00B8, 70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA:0x1C - <[0x0000]>,                                             @FSP-T CFG Offset",
            "<[0x0000]>+0x00BC, [70BCF6A5-FFB1-47D8-B1AE-EFE5508E23EA:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-T CFG Size",
            "<[0x0000]>+0x00C4, FspSecCoreT:_TempRamInitApi - [0x0000],                                                             @TempRamInit API",
@@ -388,8 +388,8 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "0x0000,            _BASE_FSP-M_,                                                                                       @Temporary Base",
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-M Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-M Base",
-         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-M Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x2000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-M Component Attribute"  % (build_type, fsp_arch),
+         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFF) | 0x0001,                                                        @FSP-M Image Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0x0FF8) | 0x2000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-M Component Attribute"  % (build_type, fsp_arch),
          "<[0x0000]>+0x00B8, D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x1C - <[0x0000]>,                                             @FSP-M CFG Offset",
          "<[0x0000]>+0x00BC, [D5B86AEA-6AF7-40D4-8014-982301BC3D89:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-M CFG Size",
          "<[0x0000]>+0x00D0, FspSecCoreM:_FspMemoryInitApi - [0x0000],                                                           @MemoryInitApi API",
@@ -403,8 +403,8 @@ def post_build (target, toolchain, fsppkg, fsparch):
          "0x0000,            _BASE_FSP-S_,                                                                                       @Temporary Base",
          "<[0x0000]>+0x00AC, [<[0x0000]>+0x0020],                                                                                @FSP-S Size",
          "<[0x0000]>+0x00B0, [0x0000],                                                                                           @FSP-S Base",
-         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFFFFFF) | 0x0001,                                                        @FSP-S Image Attribute",
-         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0xFFFF0FF8) | 0x3000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-S Component Attribute"  % (build_type, fsp_arch),
+         "<[0x0000]>+0x00B4, ([<[0x0000]>+0x00B4] & 0xFFFF) | 0x0001,                                                        @FSP-S Image Attribute",
+         "<[0x0000]>+0x00B6, ([<[0x0000]>+0x00B6] & 0x0FF8) | 0x3000 | 0x000%d | 0x000%d | 0x0002,                            @FSP-S Component Attribute"  % (build_type, fsp_arch),
          "<[0x0000]>+0x00B8, E3CD9B18-998C-4F76-B65E-98B154E5446F:0x1C - <[0x0000]>,                                             @FSP-S CFG Offset",
          "<[0x0000]>+0x00BC, [E3CD9B18-998C-4F76-B65E-98B154E5446F:0x14] & 0xFFFFFF - 0x001C,                                    @FSP-S CFG Size",
          "<[0x0000]>+0x00D8, FspSecCoreS:_FspSiliconInitApi - [0x0000],                                                          @SiliconInit API",

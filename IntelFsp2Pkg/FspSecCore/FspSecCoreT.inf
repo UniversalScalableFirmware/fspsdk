@@ -28,8 +28,9 @@
   Ia32/FspApiEntryT.nasm
   Ia32/FspHelper.nasm
 
-[Binaries.Ia32]
-  RAW|Vtf0/Bin/ResetVec.ia32.raw |GCC
+[Sources.X64]
+  X64/FspApiEntryT.nasm
+  X64/FspHelper.nasm
 
 [Packages]
   MdePkg/MdePkg.dec

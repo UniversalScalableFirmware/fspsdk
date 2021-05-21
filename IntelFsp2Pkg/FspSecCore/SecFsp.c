@@ -51,8 +51,8 @@ SecGetPlatformData (
 {
   FSP_PLAT_DATA    *FspPlatformData;
   UINT32            TopOfCar;
-  UINT32           *StackPtr;
   UINT32            DwordSize;
+  UINTN            *StackPtr;
 
   FspPlatformData = &FspData->PlatformData;
 
@@ -71,7 +71,7 @@ SecGetPlatformData (
   // Pointer to the size field
   //
   TopOfCar = PcdGet32(PcdTemporaryRamBase) + PcdGet32(PcdTemporaryRamSize);
-  StackPtr = (UINT32 *)(TopOfCar - sizeof (UINT32));
+  StackPtr = (UINTN *)(TopOfCar - sizeof (UINTN));
 
   if (*(StackPtr - 1) == FSP_MCUD_SIGNATURE) {
     while (*StackPtr != 0) {
@@ -81,7 +81,10 @@ SecGetPlatformData (
         //
         DwordSize = 4;
         StackPtr  = StackPtr - 1 - DwordSize;
-        CopyMem (&(FspPlatformData->MicrocodeRegionBase), StackPtr, (DwordSize << 2));
+        FspPlatformData->MicrocodeRegionBase   = (UINT32)StackPtr[0];
+        FspPlatformData->MicrocodeRegionSize   = (UINT32)StackPtr[1];
+        FspPlatformData->CodeRegionBase        = (UINT32)StackPtr[2];
+        FspPlatformData->CodeRegionSize        = (UINT32)StackPtr[3];
         StackPtr--;
       } else if (*(StackPtr - 1) == FSP_PER0_SIGNATURE) {
         //
@@ -89,8 +92,8 @@ SecGetPlatformData (
         //
         DwordSize = 4;
         StackPtr  = StackPtr - 1 - DwordSize;
-        CopyMem (FspData->PerfData, StackPtr, (DwordSize << 2));
-
+        FspData->PerfData[0] = StackPtr[0];
+        FspData->PerfData[1] = StackPtr[2];
         ((UINT8 *)(&FspData->PerfData[0]))[7] = FSP_PERF_ID_API_TEMP_RAM_INIT_ENTRY;
         ((UINT8 *)(&FspData->PerfData[1]))[7] = FSP_PERF_ID_API_TEMP_RAM_INIT_EXIT;
 

@@ -601,7 +601,12 @@ BochsWrite (
   UINT16                   Data
   )
 {
-  MmioWrite16  (Private->Bar2 + 0x500 + (Reg << 1), Data);
+  if (Private->Bar2 == 0) {
+    IoWrite16 (VBE_DISPI_IOPORT_INDEX, Reg);
+    IoWrite16 (VBE_DISPI_IOPORT_DATA,  Data);
+  } else {
+    MmioWrite16  (Private->Bar2 + 0x500 + (Reg << 1), Data);
+  }
 }
 
 /**
@@ -618,7 +623,12 @@ BochsRead (
   UINT16                   Reg
   )
 {
-  return MmioRead16  (Private->Bar2 + 0x500 + (Reg << 1));
+  if (Private->Bar2 == 0) {
+    IoWrite16 (VBE_DISPI_IOPORT_INDEX, Reg);
+    return IoRead16 (VBE_DISPI_IOPORT_DATA);
+  } else {
+    return MmioRead16  (Private->Bar2 + 0x500 + (Reg << 1));
+  }
 }
 
 VOID
@@ -628,7 +638,11 @@ VgaOutb (
   UINT8                    Data
   )
 {
-  MmioWrite8  (Private->Bar2 + 0x400 - 0x3c0 + Reg, Data);
+  if (Private->Bar2 == 0) {
+    IoWrite8 (Reg, Data);
+  } else {
+    MmioWrite8  (Private->Bar2 + 0x400 - 0x3c0 + Reg, Data);
+  }
 }
 
 /**
@@ -651,15 +665,21 @@ BochsInitMode (
   QEMU_VIDEO_PRIVATE_DATA  *Private;
   UINT32  Address;
   UINT32  Data;
+  UINT8   Dev;
 
-  Address = PCI_LIB_ADDRESS (0, 1, 0, PCI_VENDOR_ID_OFFSET);
-  if (PciRead32(Address) != QEMU_VGA_VID_DID) {
-    DEBUG ((DEBUG_ERROR, "Not supported GFX device!\n"));
-    return;
+  Dev = 1;
+  Address = PCI_LIB_ADDRESS (0, Dev, 0, PCI_VENDOR_ID_OFFSET);
+  if ((PciRead32(Address) != QEMU_VGA_VID_DID) && (PciRead32(Address) != QEMU_VGA_VID_DID2)) {
+    Dev = 0x0f;
+    Address = PCI_LIB_ADDRESS (0, Dev, 0, PCI_VENDOR_ID_OFFSET);
+    if ((PciRead32(Address) != QEMU_VGA_VID_DID) && (PciRead32(Address) != QEMU_VGA_VID_DID2)) {
+      DEBUG ((DEBUG_ERROR, "Not supported GFX device!\n"));
+      return;
+    }
   }
 
   Private = &mPrivate;
-  Address = PCI_LIB_ADDRESS (0, 1, 0, PCI_BASE_ADDRESSREG_OFFSET + 0 * 4);
+  Address = PCI_LIB_ADDRESS (0, Dev, 0, PCI_BASE_ADDRESSREG_OFFSET + 0 * 4);
   Data    = PciRead32(Address) & ~0xF;
   if (Data == 0) {
     PciWrite32 (Address, PciBase);
@@ -668,12 +688,11 @@ BochsInitMode (
   }
   mMode->FrameBufferBase = Data;
 
-  Address = PCI_LIB_ADDRESS (0, 1, 0, PCI_BASE_ADDRESSREG_OFFSET + 2 * 4);
+  Address = PCI_LIB_ADDRESS (0, Dev, 0, PCI_BASE_ADDRESSREG_OFFSET + 2 * 4);
   mPrivate.Bar2 = PciRead32(Address) & ~0xF;
 
-  Address = PCI_LIB_ADDRESS (0, 1, 0, PCI_COMMAND_OFFSET);
+  Address = PCI_LIB_ADDRESS (0, Dev, 0, PCI_COMMAND_OFFSET);
   PciWrite8(Address, EFI_PCI_COMMAND_BUS_MASTER | EFI_PCI_COMMAND_MEMORY_SPACE | EFI_PCI_COMMAND_IO_SPACE);
-
   BochsWrite (Private, VBE_DISPI_INDEX_ENABLE,      0);
   BochsWrite (Private, VBE_DISPI_INDEX_BANK,        0);
   BochsWrite (Private, VBE_DISPI_INDEX_X_OFFSET,    0);

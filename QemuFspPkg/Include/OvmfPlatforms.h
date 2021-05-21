@@ -19,6 +19,7 @@
 #include <Library/PciLib.h>
 #include <IndustryStandard/Pci22.h>
 #include <Q35MchIch9.h>
+#include <X58Ich10.h>
 
 //
 // OVMF Host Bridge DID Address

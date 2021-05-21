@@ -64,6 +64,7 @@
   gIntelFsp2PkgTokenSpaceGuid.PcdFspTemporaryRamSize           ## CONSUMES
   gIntelFsp2PkgTokenSpaceGuid.PcdFspHeapSizePercentage         ## CONSUMES
   gIntelFsp2PkgTokenSpaceGuid.PcdFspMaxInterruptSupported      ## CONSUMES
+  gIntelFsp2PkgTokenSpaceGuid.PcdFspReservedBufferSize         ## CONSUMES
 
 [Ppis]
   gEfiTemporaryRamSupportPpiGuid                              ## PRODUCES

@@ -17,6 +17,7 @@
 #define _QEMU_VIDEO_H_
 
 #define QEMU_VGA_VID_DID                 0x11111234
+#define QEMU_VGA_VID_DID2                0x11114321
 
 #define VBE_DISPI_IOPORT_INDEX           0x01CE
 #define VBE_DISPI_IOPORT_DATA            0x01D0

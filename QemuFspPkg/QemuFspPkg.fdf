@@ -20,8 +20,8 @@ DEFINE FLASH_BLOCK_SIZE     = 0x00000100
 #
 # Flash Size for Visual Studio and GCC
 #
-DEFINE FLASH_SIZE           = 0x00038000
-DEFINE FLASH_NUM_BLOCKS     = 0x380          #The number of blocks
+DEFINE FLASH_SIZE           = 0x0003A000
+DEFINE FLASH_NUM_BLOCKS     = 0x3A0          #The number of blocks
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsBase  = 0x00000000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspsSize  = 0x00015000
@@ -30,7 +30,7 @@ SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmBase  = 0x00015000
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFspmSize  = 0x00022000
 
 SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptBase  = 0x00037000
-SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00001000
+SET gQemuFspPkgTokenSpaceGuid.PcdFlashFvFsptSize  = 0x00003000
 
 ################################################################################
 #
@@ -115,7 +115,7 @@ FILE RAW = $(FSP_T_UPD_FFS_GUID) {
     SECTION RAW = $(OUTPUT_DIRECTORY)/$(TARGET)_$(TOOL_CHAIN_TAG)/FV/$(FSP_T_UPD_TOOL_GUID).bin
 }
 
-INF RuleOverride = RELOC  USE = IA32 IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
+INF RuleOverride = RELOC USE = $(FSP_ARCH)  IntelFsp2Pkg/FspSecCore/FspSecCoreT.inf
 
 [FV.FSP-M]
 BlockSize          = $(FLASH_BLOCK_SIZE)

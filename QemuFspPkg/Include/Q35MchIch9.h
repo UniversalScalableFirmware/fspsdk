@@ -58,6 +58,7 @@
 #define MCH_ESMRAMC_TSEG_2MB    BIT1
 #define MCH_ESMRAMC_TSEG_1MB    0
 #define MCH_ESMRAMC_TSEG_MASK   (BIT2 | BIT1)
+#define MCH_ESMRAMC_TSEG_EXT    MCH_ESMRAMC_TSEG_MASK
 #define MCH_ESMRAMC_T_EN        BIT0
 
 #define MCH_GBSM              0xA4

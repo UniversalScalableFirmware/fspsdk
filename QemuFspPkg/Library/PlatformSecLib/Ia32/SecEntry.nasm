@@ -149,6 +149,22 @@ PlatformNemInitExit:
   RET_ESI
 
 PlatformInitialization:
+  ;
+  ; Set RCBA base
+  ;
+  mov     edx, 0xCF8
+  mov     eax, 0x8000F8F0
+  out     dx,  eax
+  mov     edx, 0xCFC
+  mov     eax, PCH_RCBA_BASE_ADDRESS + 1
+  out     dx,  eax
+  ;
+  ; Enable HPET decoding
+  ;
+  mov     edx, PCH_RCBA_BASE_ADDRESS + 0x3404
+  mov     al,  0x80
+  mov     [edx], al
+
   xor     eax, eax
   jmp     ebp
 
@@ -474,10 +490,14 @@ NoL0x2Cace:
   ;   Enable No-Eviction Mode Setup State by setting
   ;   NO_EVICT_MODE  MSR 2E0h bit [0] = '1'.
   ;
+
+  ;   Skip MSR setting for QEMU to allow running with KVM
+%if 0
   mov     ecx, NO_EVICT_MODE
   rdmsr
   or      eax, 1
   wrmsr
+%endif
 
   ;
   ;   One location in each 64-byte cache line of the DataStack region
@@ -510,10 +530,14 @@ NoL0x2Cace:
   ;   Enable No-Eviction Mode Run State by setting
   ;   NO_EVICT_MODE MSR 2E0h bit [1] = '1'.
   ;
+
+  ;   Skip MSR setting for QEMU to allow running with KVM
+%if 0
   mov     ecx, NO_EVICT_MODE
   rdmsr
   or      eax, 2
   wrmsr
+%endif
 
   ;
   ; Finished with cache configuration

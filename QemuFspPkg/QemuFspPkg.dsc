@@ -94,6 +94,7 @@
   UefiDecompressLib|MdePkg/Library/BaseUefiDecompressLib/BaseUefiDecompressLib.inf
   SynchronizationLib|MdePkg/Library/BaseSynchronizationLib/BaseSynchronizationLib.inf
   CpuLib|MdePkg/Library/BaseCpuLib/BaseCpuLib.inf
+  UefiCpuLib|UefiCpuPkg/Library/BaseUefiCpuLib/BaseUefiCpuLib.inf
   ExtractGuidedSectionLib|MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
   CacheLib|IntelFsp2Pkg/Library/BaseCacheLib/BaseCacheLib.inf
   CacheAsRamLib|IntelFsp2Pkg/Library/BaseCacheAsRamLibNull/BaseCacheAsRamLibNull.inf
@@ -103,7 +104,6 @@
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
   PerformanceLib|MdePkg/Library/BasePerformanceLibNull/BasePerformanceLibNull.inf
   OemHookStatusCodeLib|MdeModulePkg/Library/OemHookStatusCodeLibNull/OemHookStatusCodeLibNull.inf
-  UefiCpuLib|UefiCpuPkg/Library/BaseUefiCpuLib/BaseUefiCpuLib.inf
 !if $(TARGET) == DEBUG
   DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
   SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
@@ -374,6 +374,7 @@
   #
   $(FSP_PACKAGE)/FspHeader/FspHeader.inf
 
+[Components.$(FSP_ARCH)]
   #
   # SEC
   #
@@ -382,7 +383,6 @@
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecTLib.inf
   }
 
-[Components.$(FSP_ARCH)]
   IntelFsp2Pkg/FspSecCore/FspSecCoreM.inf {
     <LibraryClasses>
       FspSecPlatformLib|$(FSP_PACKAGE)/Library/PlatformSecLib/Vtf0PlatformSecMLib.inf
@@ -435,3 +435,4 @@
   *_GCC5_IA32_DLINK_FLAGS = -no-pie
   *_GCC5_IA32_ASLCC_FLAGS = -fno-pic
   *_GCC5_IA32_ASLDLINK_FLAGS = -no-pie
+  *_XCODE5_IA32_CC_FLAGS = -flto

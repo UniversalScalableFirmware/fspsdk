@@ -164,9 +164,9 @@ NextAddress:
             ;
             ; Set OSFXSR bit (bit #9) & OSXMMEXCPT bit (bit #10)
             ;
-            mov     eax, cr4
-            or      eax, 00000600h
-            mov     cr4, eax
+            mov     rax, cr4
+            or      rax, 00000600h
+            mov     cr4, rax
 
             ;
             ; The processor should support SSE instruction and we can use

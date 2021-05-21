@@ -1,10 +1,11 @@
 ;; @file
 ;  Provide FSP API entry points.
 ;
-; Copyright (c) 2016 - 2020, Intel Corporation. All rights reserved.<BR>
+; Copyright (c) 2016 - 2021, Intel Corporation. All rights reserved.<BR>
 ; SPDX-License-Identifier: BSD-2-Clause-Patent
 ;;
 
+    DEFAULT REL
     SECTION .text
 
 %include    "SaveRestoreSseNasm.inc"
@@ -29,9 +30,10 @@ extern ASM_PFX(SecCarInit)
 ;
 ; Define the data length that we saved on the stack top
 ;
-DATA_LEN_OF_PER0         EQU   18h
-DATA_LEN_OF_MCUD         EQU   18h
-DATA_LEN_AT_STACK_TOP    EQU   (DATA_LEN_OF_PER0 + DATA_LEN_OF_MCUD + 4)
+DATA_UNIT_SIZE           EQU   8
+DATA_LEN_OF_PER0         EQU   (6 * DATA_UNIT_SIZE)
+DATA_LEN_OF_MCUD         EQU   (6 * DATA_UNIT_SIZE)
+DATA_LEN_AT_STACK_TOP    EQU   (DATA_LEN_OF_PER0 + DATA_LEN_OF_MCUD + DATA_UNIT_SIZE)
 
 ;
 ; @todo: These structures are moved from MicrocodeLoadNasm.inc to avoid
@@ -111,8 +113,8 @@ endstruc
 ;args 1: RoutineLabel  2:MmxRegister
 ;
 %macro CALL_MMX_EXT  2
-  mov     esi, %%ReturnAddress
-  movd    %2, esi              ; save ReturnAddress into MMX
+  mov     rsi, %%ReturnAddress
+  movd    %2, rsi              ; save ReturnAddress into MMX
   jmp     %1
 %%ReturnAddress:
 %endmacro
@@ -121,8 +123,8 @@ endstruc
 ;arg 1:MmxRegister
 ;
 %macro RET_ESI_EXT   1
-  movd    esi, %1              ; move ReturnAddress from MMX to ESI
-  jmp     esi
+  movd    rsi, %1              ; move ReturnAddress from MMX to ESI
+  jmp     rsi
 %endmacro
 
 ;
@@ -175,11 +177,11 @@ ASM_PFX(LoadMicrocodeDefault):
    ;
    ;
    ; Save return address to EBP
-   movd   ebp, mm7
+   movd   rbp, mm7
 
    cmp    esp, 0
    jz     ParamError
-   mov    eax, dword [esp + 4]    ; Parameter pointer
+   mov    eax, dword [esp + 8]    ; Parameter pointer
    cmp    eax, 0
    jz     ParamError
    mov    esp, eax
@@ -204,18 +206,18 @@ ASM_PFX(LoadMicrocodeDefault):
 
 Fsp22UpdHeader:
    ; UPD structure is compliant with FSP spec 2.2
-   mov    eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeSize]
+   mov    eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeSize + 04h]
    cmp    eax, 0
    jz     Exit2
    cmp    eax, 0800h
    jl     ParamError
 
-   mov    esi, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeAddr]
+   mov    esi, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeAddr + 04h]
    cmp    esi, 0
    jnz    CheckMainHeader
 
 ParamError:
-   mov    eax, 080000002h
+   mov    rax, 08000000000000002h
    jmp    Exit2
 
 CheckMainHeader:
@@ -307,10 +309,6 @@ AdvanceFixedSize:
    add   esi, dword  1024
 
 CheckAddress:
-   ; Is valid Microcode start point ?
-   cmp   dword [esi + MicrocodeHdr.MicrocodeHdrVersion], 0ffffffffh
-   jz    Done
-
    ; Check UPD header revision
    cmp    byte [esp + LoadMicrocodeParamsFsp22.FspUpdHeaderRevision], 2
    jae    Fsp22UpdHeader1
@@ -330,17 +328,21 @@ CheckAddress:
 Fsp22UpdHeader1:
    ; UPD structure is compliant with FSP spec 2.2
    ; Is automatic size detection ?
-   mov   eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeSize]
+   mov   eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeSize + 04h]
    cmp   eax, 0ffffffffh
    jz    LoadMicrocodeDefault4
 
    ; Address >= microcode region address + microcode region size?
-   add   eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeAddr]
+   add   eax, dword [esp + LoadMicrocodeParamsFsp22.MicrocodeCodeAddr + 04h]
    cmp   esi, eax
    jae   Done        ;Jif address is outside of microcode region
    jmp   CheckMainHeader
 
 LoadMicrocodeDefault4:
+   ; Is valid Microcode start point ?
+   cmp   dword [esi + MicrocodeHdr.MicrocodeHdrVersion], 0ffffffffh
+   jz    Done
+
 LoadCheck:
    ; Get the revision of the current microcode update loaded
    mov   ecx, MSR_IA32_BIOS_SIGN_ID
@@ -381,10 +383,10 @@ Done:
    xor   eax, eax
    cmp   edx, 0
    jnz   Exit2
-   mov   eax, 08000000Eh
+   mov   rax, 0800000000000000Eh
 
 Exit2:
-   jmp   ebp
+   jmp   rbp
 
 
 global ASM_PFX(EstablishStackFsp)
@@ -392,34 +394,29 @@ ASM_PFX(EstablishStackFsp):
   ;
   ; Save parameter pointer in edx
   ;
-  mov       rdx, r8
+  mov        rdx, r8
 
   ;
   ; Enable FSP STACK
   ;
-  mov       esp, DWORD [ASM_PFX(PcdGet32 (PcdTemporaryRamBase))]
-  add       esp, DWORD [ASM_PFX(PcdGet32 (PcdTemporaryRamSize))]
+  mov        rax, ASM_PFX(PcdGet32 (PcdTemporaryRamBase))
+  mov        esp, DWORD[eax]
+  mov        rax, ASM_PFX(PcdGet32 (PcdTemporaryRamSize))
+  add        esp, DWORD[rax]
 
-  push      DATA_LEN_OF_MCUD     ; Size of the data region
-  push      4455434Dh            ; Signature of the  data region 'MCUD'
-
-  ; check UPD structure revision (edx + 8)
-  cmp       byte [edx + LoadMicrocodeParamsFsp22.FspUpdHeaderRevision], 2
-  jae       Fsp22UpdHeader2
+  push       DATA_LEN_OF_MCUD     ; Size of the data region
+  push       4455434Dh            ; Signature of the  data region 'MCUD'
 
   ; UPD structure is compliant with FSP spec 2.0/2.1
-  push      dword [edx + LoadMicrocodeParams.CodeRegionSize]     ; Code size       sizeof(FSPT_UPD_COMMON) + 12
-  push      dword [edx + LoadMicrocodeParams.CodeRegionBase]     ; Code base       sizeof(FSPT_UPD_COMMON) + 8
-  push      dword [edx + LoadMicrocodeParams.MicrocodeCodeSize]  ; Microcode size  sizeof(FSPT_UPD_COMMON) + 4
-  push      dword [edx + LoadMicrocodeParams.MicrocodeCodeAddr]  ; Microcode base  sizeof(FSPT_UPD_COMMON) + 0
+  mov       eax,  [rdx + LoadMicrocodeParams.CodeRegionSize + 04h]     ; Code size       sizeof(FSPT_UPD_COMMON) + 12
+  push      rax
+  mov       eax,  [rdx + LoadMicrocodeParams.CodeRegionBase + 04h]     ; Code base       sizeof(FSPT_UPD_COMMON) + 8
+  push      rax
+  mov       eax,  [rdx + LoadMicrocodeParams.MicrocodeCodeSize + 04h]  ; Microcode size  sizeof(FSPT_UPD_COMMON) + 4
+  push      rax
+  mov       eax,  [rdx + LoadMicrocodeParams.MicrocodeCodeAddr + 04h]  ; Microcode base  sizeof(FSPT_UPD_COMMON) + 0
+  push      rax
   jmp       ContinueAfterUpdPush
-
-Fsp22UpdHeader2:
-  ; UPD structure is compliant with FSP spec 2.2
-  push      dword [edx + LoadMicrocodeParamsFsp22.CodeRegionSize]     ; Code size       sizeof(FSPT_UPD_COMMON) + 12
-  push      dword [edx + LoadMicrocodeParamsFsp22.CodeRegionBase]     ; Code base       sizeof(FSPT_UPD_COMMON) + 8
-  push      dword [edx + LoadMicrocodeParamsFsp22.MicrocodeCodeSize]  ; Microcode size  sizeof(FSPT_UPD_COMMON) + 4
-  push      dword [edx + LoadMicrocodeParamsFsp22.MicrocodeCodeAddr]  ; Microcode base  sizeof(FSPT_UPD_COMMON) + 0
 
 ContinueAfterUpdPush:
   ;
@@ -428,12 +425,12 @@ ContinueAfterUpdPush:
   push      DATA_LEN_OF_PER0     ; Size of the data region
   push      30524550h            ; Signature of the  data region 'PER0'
   rdtsc
-  push      edx
-  push      eax
+  push      rdx
+  push      rax
   LOAD_EDX
-  push      edx
+  push      rdx
   LOAD_EAX
-  push      eax
+  push      rax
 
   ;
   ; Terminator for the data on stack
@@ -443,17 +440,15 @@ ContinueAfterUpdPush:
   ;
   ; Set ECX/EDX to the BootLoader temporary memory range
   ;
-  mov       ecx,  [ASM_PFX(PcdGet32 (PcdTemporaryRamBase))]
-  mov       edx, ecx
-  add       edx,  [ASM_PFX(PcdGet32 (PcdTemporaryRamSize))]
-  sub       edx,  [ASM_PFX(PcdGet32 (PcdFspReservedBufferSize))]
-
-  cmp       ecx, edx        ;If PcdFspReservedBufferSize >= PcdTemporaryRamSize, then error.
+  mov       edx, [ASM_PFX(PcdGet32 (PcdTemporaryRamBase))]
+  add       edx, [ASM_PFX(PcdGet32 (PcdTemporaryRamSize))]
+  sub       edx, [ASM_PFX(PcdGet32 (PcdFspReservedBufferSize))]
+  cmp       rcx, rdx        ;If PcdFspReservedBufferSize >= PcdTemporaryRamSize, then error.
   jb        EstablishStackFspSuccess
-  mov       eax, 80000003h  ;EFI_UNSUPPORTED
+  mov       rax, 8000000000000003h  ;EFI_UNSUPPORTED
   jmp       EstablishStackFspExit
 EstablishStackFspSuccess:
-  xor       eax, eax
+  xor       rax, rax
 
 EstablishStackFspExit:
   RET_ESI
@@ -468,10 +463,19 @@ EstablishStackFspExit:
 ;----------------------------------------------------------------------------
 global ASM_PFX(TempRamInitApi)
 ASM_PFX(TempRamInitApi):
+  ; Save RBX, RCX
+  mov  r8, rcx
+  mov  r9, rbx
+
   ;
   ; Ensure SSE is enabled
   ;
   ENABLE_SSE
+
+  ; Restroe RBX, RCX
+  ; R8 = FSP-T UPD Pointer
+  mov  rcx, r8
+  mov  rbx, r9
 
   ;
   ; Save EBP, EBX, ESI, EDI & ESP in XMM7 & XMM6
@@ -488,42 +492,39 @@ ASM_PFX(TempRamInitApi):
   ;
   ; Check Parameter
   ;
-  mov       eax, dword [esp + 4]
-  cmp       eax, 0
-  mov       eax, 80000002h
+  mov       rax, rcx
+  cmp       rax, 0
+  mov       rax, 8000000000000002h
   jz        TempRamInitExit
 
   ;
   ; Sec Platform Init
   ;
   CALL_MMX  ASM_PFX(SecPlatformInit)
-  cmp       eax, 0
+  cmp       rax, 0
   jnz       TempRamInitExit
 
   ; Load microcode
-  LOAD_ESP
   CALL_MMX  ASM_PFX(LoadMicrocodeDefault)
   SXMMN     xmm6, 3, eax            ;Save microcode return status in ECX-SLOT 3 in xmm6.
   ;@note If return value eax is not 0, microcode did not load, but continue and attempt to boot.
 
   ; Call Sec CAR Init
-  LOAD_ESP
   CALL_MMX  ASM_PFX(SecCarInit)
-  cmp       eax, 0
+  cmp       rax, 0
   jnz       TempRamInitExit
 
-  LOAD_ESP
   CALL_MMX  ASM_PFX(EstablishStackFsp)
-  cmp       eax, 0
+  cmp       rax, 0
   jnz       TempRamInitExit
 
-  LXMMN      xmm6, eax, 3  ;Restore microcode status if no CAR init error from ECX-SLOT 3 in xmm6.
+  LXMMN     xmm6, eax, 3  ;Restore microcode status if no CAR init error from ECX-SLOT 3 in xmm6.
 
 TempRamInitExit:
-   mov      bl, al                  ; save al data in bl
-   mov      al, 07Fh                ; API exit postcode 7f
-   out      080h, al
-   mov      al, bl                  ; restore al data from bl
+  mov      bl, al                  ; save al data in bl
+  mov      al, 07Fh                ; API exit postcode 7f
+  out      080h, al
+  mov      al, bl                  ; restore al data from bl
 
   ;
   ; Load EBP, EBX, ESI, EDI & ESP from XMM7 & XMM6
