@@ -24,9 +24,9 @@
 #include <Library/UefiCpuLib.h>
 #include <FspEas.h>
 
-typedef VOID (*PEI_CORE_ENTRY) ( \
-  IN CONST  EFI_SEC_PEI_HAND_OFF    *SecCoreData, \
-  IN CONST  EFI_PEI_PPI_DESCRIPTOR  *PpiList \
+typedef VOID (EFIAPI *PEI_CORE_ENTRY) (
+  IN CONST  EFI_SEC_PEI_HAND_OFF    *SecCoreData,
+  IN CONST  EFI_PEI_PPI_DESCRIPTOR  *PpiList
 );
 
 typedef struct _SEC_IDT_TABLE {
