@@ -27,6 +27,13 @@ import subprocess
 import multiprocessing
 from ctypes import *
 
+def python_bin():
+    '''Return path to Python executable.
+
+    Some users might be using "python" and some "python3".
+    '''
+    return os.environ['PYTHON_COMMAND']
+
 def get_file_data (file, mode = 'rb'):
     return open(file, mode).read()
 
@@ -238,8 +245,8 @@ def create_conf (workspace, sbl_source):
 def prep_env ():
     # check python version first
     version = check_for_python ()
-    os.environ['PYTHON_COMMAND'] = '"' + sys.executable + '"'
-    print_tool_version_info(os.environ['PYTHON_COMMAND'], version.strip())
+    os.environ['PYTHON_COMMAND'] = sys.executable
+    print_tool_version_info(python_bin(), version.strip())
 
     sblsource = os.path.dirname(os.path.realpath(__file__))
     os.chdir(sblsource)
@@ -321,8 +328,8 @@ def pre_build(target, toolchain, fsppkg):
 
     pkgname = 'QemuFspPkg'
 
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py UPDTXT %s/%s.dsc Build/%s/%s_%s/FV' % (
-           workspace, pkgname, pkgname, pkgname, target, toolchain)
+    cmd = '%s %s/IntelFsp2Pkg/Tools/GenCfgOpt.py UPDTXT %s/%s.dsc Build/%s/%s_%s/FV' % (
+           python_bin(), workspace, pkgname, pkgname, pkgname, target, toolchain)
     ret = subprocess.call(cmd.split(' '))
     if not (ret == 0 or ret == 256):
         fatal('Failed to generate UPD txt file !')
@@ -345,15 +352,15 @@ def pre_build(target, toolchain, fsppkg):
         if ret:
             fatal('Failed to generate UPD bin file !')
 
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
+    cmd = '%s %s/IntelFsp2Pkg/Tools/GenCfgOpt.py HEADER %s/%s.dsc Build/%s/%s_%s/FV %s/Include/BootLoaderPlatformData.h' % (
+          python_bin(), workspace, pkgname, pkgname, pkgname, target, toolchain, pkgname)
     ret = subprocess.call(cmd.split(' '))
     if ret:
         fatal('Failed to generate UPD header file !')
 
     print('Generate BSF File ...')
-    cmd = 'python %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
-          workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
+    cmd = '%s %s/IntelFsp2Pkg/Tools/GenCfgOpt.py GENBSF %s/%s.dsc Build/%s/%s_%s/FV %s/QemuFsp.bsf' % (
+          python_bin(), workspace, pkgname, pkgname, pkgname, target, toolchain, fvdir)
     ret = subprocess.call(cmd.split(' '))
     if ret:
         fatal('Failed to generate UPD BSF file !')
@@ -415,7 +422,7 @@ def post_build (target, toolchain, fsppkg, fsparch):
 
     for fspt, cmd in [('T', cmd1), ('M', cmd2), ('S',cmd3)]:
         print ('Patch FSP-%s Image ...' % fspt)
-        line = ['python', patchfv, fvdir, 'FSP-%s:QEMUFSP' % fspt]
+        line = [python_bin(), patchfv, fvdir, 'FSP-%s:QEMUFSP' % fspt]
         line.extend(cmd)
         ret = subprocess.call(line)
         if ret:
